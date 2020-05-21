@@ -4,3 +4,6 @@ version = "0.1.0"
 authors = ["Christopher N. Hesse <raymanfx@gmail.com>"]
 edition = "2018"
 license = "MIT"
+
+[dependencies]
+num-traits = "^0.2"
