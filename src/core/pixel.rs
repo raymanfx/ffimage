@@ -70,6 +70,34 @@ macro_rules! define_pixel {
         #[derive(Debug, Copy, Clone, PartialEq, Eq)]
         #[$doc]
         pub struct $name<T: StorageType>(pub [T; $channels]);
+
+        impl<T: StorageType> $name<T> {
+            /// Returns a new pixel
+            ///
+            /// # Arguments
+            ///
+            /// * `channels` - Channel values
+            ///
+            /// # Example
+            ///
+            /// ```
+            /// use std::array;
+            /// use std::convert::{From, TryFrom};
+            /// use std::ops::{Index, IndexMut};
+            ///
+            /// use ffimage::{create_pixel, define_pixel, impl_Pixel};
+            /// use ffimage::core::{Pixel, StorageType};
+            ///
+            /// // define a new pixel type
+            /// create_pixel!(Rgb, 3, #[doc = "RGB pixel"]);
+            ///
+            /// // use the newly created type
+            /// let pix = Rgb::<u8>::new([0, 0, 0]);
+            /// ```
+            pub fn new(channels: [T; $channels]) -> Self {
+                $name { 0: channels }
+            }
+        }
     };
 }
 
