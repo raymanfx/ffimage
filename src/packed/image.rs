@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 use std::mem;
 
-use crate::core::iter::PixelIter;
+use crate::core::iter::{PixelIter, PixelIterMut};
 use crate::core::traits::{ImageBuffer, ImageView, Pixel, Resize};
 use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
@@ -154,6 +154,47 @@ macro_rules! impl_IntoIterator {
 
             fn into_iter(self) -> PixelIter<'a, $id<'a, T>> {
                 PixelIter::new(self)
+            }
+        }
+    };
+}
+
+// iterators handing out mutable references are not allowed by safe rust as explained here:
+// https://stackoverflow.com/a/27641876/11423991
+macro_rules! impl_IntoIteratorMut {
+    ($id:ident) => {
+        impl<'a, T: Pixel> Iterator for PixelIterMut<'a, $id<'a, T>> {
+            type Item = &'a mut T;
+
+            fn next(&mut self) -> Option<Self::Item> {
+                if self.x >= self.width {
+                    self.x = 0;
+                    self.y += 1;
+                }
+
+                if self.y >= self.height {
+                    return None;
+                }
+
+                let pixel = self.img.pixel_mut(self.x, self.y);
+                self.x += 1;
+
+                // This is safe because...
+                // (from http://stackoverflow.com/questions/25730586):
+                // The Rust compiler does not know that when you ask a mutable iterator for the
+                // next element, that you get a different reference every time and never the same
+                // reference twice. Of course, we know that such an iterator won't give you the
+                // same reference twice.
+                unsafe { mem::transmute(pixel) }
+            }
+        }
+
+        impl<'a, T: Pixel> IntoIterator for &'a mut $id<'a, T> {
+            type Item = &'a mut T;
+            type IntoIter = PixelIterMut<'a, $id<'a, T>>;
+
+            fn into_iter(self) -> PixelIterMut<'a, $id<'a, T>> {
+                PixelIterMut::new(self)
             }
         }
     };
@@ -362,6 +403,7 @@ impl_ImageBuffer!(GenericFlatBuffer);
 impl_AccessPixel!(GenericFlatBuffer);
 impl_AccessPixelMut!(GenericFlatBuffer);
 impl_IntoIterator!(GenericFlatBuffer);
+impl_IntoIteratorMut!(GenericFlatBuffer);
 
 pub struct GenericBuffer<'a, T: Pixel> {
     raw: Vec<T::T>,
@@ -450,3 +492,4 @@ impl_Resize!(GenericBuffer);
 impl_AccessPixel!(GenericBuffer);
 impl_AccessPixelMut!(GenericBuffer);
 impl_IntoIterator!(GenericBuffer);
+impl_IntoIteratorMut!(GenericBuffer);
