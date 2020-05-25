@@ -1,7 +1,7 @@
 use std::{array, mem, ops::IndexMut};
 
 /// Pixel backing type
-pub trait StorageType: Default + Copy + Clone {}
+pub trait StorageType: Default + Copy + Clone + Send + Sync {}
 
 impl StorageType for u8 {}
 impl StorageType for u16 {}
