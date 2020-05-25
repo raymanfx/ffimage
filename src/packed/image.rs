@@ -1,7 +1,7 @@
 use std::marker::PhantomData;
 use std::mem;
 
-use crate::core::iter::PixelIterator;
+use crate::core::iter::PixelIter;
 use crate::core::traits::{ImageBuffer, ImageView, Pixel, Resize};
 use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
@@ -128,7 +128,7 @@ macro_rules! impl_AccessPixelMut {
 
 macro_rules! impl_IntoIterator {
     ($id:ident) => {
-        impl<'a, T: Pixel> Iterator for PixelIterator<'a, $id<'a, T>> {
+        impl<'a, T: Pixel> Iterator for PixelIter<'a, $id<'a, T>> {
             type Item = &'a T;
 
             fn next(&mut self) -> Option<Self::Item> {
@@ -150,10 +150,10 @@ macro_rules! impl_IntoIterator {
 
         impl<'a, T: Pixel> IntoIterator for &'a $id<'a, T> {
             type Item = &'a T;
-            type IntoIter = PixelIterator<'a, $id<'a, T>>;
+            type IntoIter = PixelIter<'a, $id<'a, T>>;
 
-            fn into_iter(self) -> PixelIterator<'a, $id<'a, T>> {
-                PixelIterator::new(self)
+            fn into_iter(self) -> PixelIter<'a, $id<'a, T>> {
+                PixelIter::new(self)
             }
         }
     };
