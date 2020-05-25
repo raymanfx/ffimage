@@ -9,4 +9,9 @@ readme = "README.md"
 repository= "https://github.com/raymanfx/ffimage"
 
 [dependencies]
+criterion = "^0.3"
 num-traits = "^0.2"
+
+[[bench]]
+name = "bench_main"
+harness = false
