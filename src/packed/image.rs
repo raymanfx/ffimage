@@ -85,19 +85,33 @@ macro_rules! impl_AccessPixel {
         impl<'a, T: Pixel> AccessPixel for $id<'a, T> {
             type PixelType = T;
 
-            fn pixel(&self, x: u32, y: u32) -> Option<&Self::PixelType> {
-                if x >= self.width() || y >= self.height() {
+            fn pixel_row(&self, y: u32) -> Option<&[Self::PixelType]> {
+                if y >= self.height() {
                     return None;
                 }
 
                 // determine the offset in the raw buffer
                 let stride_elems = self.stride() / mem::size_of::<T::T>();
-                let off: usize = y as usize * stride_elems + x as usize * T::channels() as usize;
-                let slice = &self.raw[off..off + T::channels() as usize];
+                let off: usize = y as usize * stride_elems;
+                let slice = &self.raw[off..off + stride_elems];
                 let (head, body, _tail) = unsafe { slice.align_to::<T>() };
                 assert!(head.is_empty(), "raw data is not aligned");
+                assert_eq!(
+                    body.len(),
+                    self.width() as usize,
+                    "invalid number of row items"
+                );
 
-                Some(&body[0])
+                Some(&body)
+            }
+
+            fn pixel(&self, x: u32, y: u32) -> Option<&Self::PixelType> {
+                if x >= self.width() || y >= self.height() {
+                    return None;
+                }
+
+                let row = self.pixel_row(y)?;
+                Some(&row[x as usize])
             }
         }
     };
@@ -108,19 +122,30 @@ macro_rules! impl_AccessPixelMut {
         impl<'a, T: Pixel> AccessPixelMut for $id<'a, T> {
             type PixelType = T;
 
-            fn pixel_mut(&mut self, x: u32, y: u32) -> Option<&mut Self::PixelType> {
-                if x >= self.width() || y >= self.height() {
+            fn pixel_row_mut(&mut self, y: u32) -> Option<&mut [Self::PixelType]> {
+                let width = self.width();
+                if y >= self.height() {
                     return None;
                 }
 
                 // determine the offset in the raw buffer
                 let stride_elems = self.stride() / mem::size_of::<T::T>();
-                let off: usize = y as usize * stride_elems + x as usize * T::channels() as usize;
-                let slice = &mut self.raw[off..off + T::channels() as usize];
+                let off: usize = y as usize * stride_elems;
+                let slice = &mut self.raw[off..off + stride_elems];
                 let (head, body, _tail) = unsafe { slice.align_to_mut::<T>() };
                 assert!(head.is_empty(), "raw data is not aligned");
+                assert_eq!(body.len(), width as usize, "invalid number of row items");
 
-                Some(&mut body[0])
+                Some(&mut body[..])
+            }
+
+            fn pixel_mut(&mut self, x: u32, y: u32) -> Option<&mut Self::PixelType> {
+                if x >= self.width() || y >= self.height() {
+                    return None;
+                }
+
+                let row = self.pixel_row_mut(y)?;
+                Some(&mut row[x as usize])
             }
         }
     };

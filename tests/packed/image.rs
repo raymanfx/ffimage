@@ -52,6 +52,33 @@ mod view {
     }
 
     #[test]
+    fn pixel_row() {
+        let mut mem = vec![0; 12];
+        mem[6] = 10;
+        mem[7] = 20;
+        mem[8] = 30;
+        mem[9] = 11;
+        mem[10] = 21;
+        mem[11] = 31;
+        let view = GenericImageView::<Rgb<u8>>::new(&mem, 2, 2).unwrap();
+        let row = view.pixel_row(1).unwrap();
+        assert_eq!(row[0], Rgb::<u8>::new([10, 20, 30]));
+        assert_eq!(row[1], Rgb::<u8>::new([11, 21, 31]));
+
+        let mut mem = vec![0; 14];
+        mem[7] = 10;
+        mem[8] = 20;
+        mem[9] = 30;
+        mem[10] = 11;
+        mem[11] = 21;
+        mem[12] = 31;
+        let view = GenericImageView::<Rgb<u8>>::with_stride(&mem, 2, 2, 7).unwrap();
+        let row = view.pixel_row(1).unwrap();
+        assert_eq!(row[0], Rgb::<u8>::new([10, 20, 30]));
+        assert_eq!(row[1], Rgb::<u8>::new([11, 21, 31]));
+    }
+
+    #[test]
     fn pixel() {
         let mut mem = vec![0; 27];
         mem[18] = 10;
@@ -148,6 +175,33 @@ mod flatbuffer {
     }
 
     #[test]
+    fn pixel_row() {
+        let mut mem = vec![0; 12];
+        mem[6] = 10;
+        mem[7] = 20;
+        mem[8] = 30;
+        mem[9] = 11;
+        mem[10] = 21;
+        mem[11] = 31;
+        let view = GenericImageFlatBuffer::<Rgb<u8>>::new(&mut mem, 2, 2).unwrap();
+        let row = view.pixel_row(1).unwrap();
+        assert_eq!(row[0], Rgb::<u8>::new([10, 20, 30]));
+        assert_eq!(row[1], Rgb::<u8>::new([11, 21, 31]));
+
+        let mut mem = vec![0; 14];
+        mem[7] = 10;
+        mem[8] = 20;
+        mem[9] = 30;
+        mem[10] = 11;
+        mem[11] = 21;
+        mem[12] = 31;
+        let view = GenericImageFlatBuffer::<Rgb<u8>>::with_stride(&mut mem, 2, 2, 7).unwrap();
+        let row = view.pixel_row(1).unwrap();
+        assert_eq!(row[0], Rgb::<u8>::new([10, 20, 30]));
+        assert_eq!(row[1], Rgb::<u8>::new([11, 21, 31]));
+    }
+
+    #[test]
     fn pixel() {
         let mut mem = vec![0; 27];
         mem[18] = 10;
@@ -168,6 +222,33 @@ mod flatbuffer {
         assert_eq!(pix[0], 10);
         assert_eq!(pix[1], 20);
         assert_eq!(pix[2], 30);
+    }
+
+    #[test]
+    fn pixel_row_mut() {
+        let mut mem = vec![0; 12];
+        mem[6] = 10;
+        mem[7] = 20;
+        mem[8] = 30;
+        mem[9] = 11;
+        mem[10] = 21;
+        mem[11] = 31;
+        let mut buf = GenericImageFlatBuffer::<Rgb<u8>>::new(&mut mem, 2, 2).unwrap();
+        let row = buf.pixel_row_mut(1).unwrap();
+        assert_eq!(row[0], Rgb::<u8>::new([10, 20, 30]));
+        assert_eq!(row[1], Rgb::<u8>::new([11, 21, 31]));
+
+        let mut mem = vec![0; 14];
+        mem[7] = 10;
+        mem[8] = 20;
+        mem[9] = 30;
+        mem[10] = 11;
+        mem[11] = 21;
+        mem[12] = 31;
+        let mut buf = GenericImageFlatBuffer::<Rgb<u8>>::with_stride(&mut mem, 2, 2, 7).unwrap();
+        let row = buf.pixel_row_mut(1).unwrap();
+        assert_eq!(row[0], Rgb::<u8>::new([10, 20, 30]));
+        assert_eq!(row[1], Rgb::<u8>::new([11, 21, 31]));
     }
 
     #[test]
@@ -254,6 +335,16 @@ mod buffer {
     }
 
     #[test]
+    fn pixel_row() {
+        let mut buf = GenericImageBuffer::<Rgb<u8>>::new(3, 3);
+        buf.set_pixel(0, 2, &Rgb::<u8>::new([10, 20, 30]));
+        buf.set_pixel(1, 2, &Rgb::<u8>::new([11, 21, 31]));
+        let row = buf.pixel_row(2).unwrap();
+        assert_eq!(row[0], Rgb::<u8>::new([10, 20, 30]));
+        assert_eq!(row[1], Rgb::<u8>::new([11, 21, 31]));
+    }
+
+    #[test]
     fn pixel() {
         let mut buf = GenericImageBuffer::<Rgb<u8>>::new(3, 3);
         buf.set_pixel(0, 2, &Rgb::<u8>::new([10, 20, 30]));
@@ -261,6 +352,16 @@ mod buffer {
         assert_eq!(pix[0], 10);
         assert_eq!(pix[1], 20);
         assert_eq!(pix[2], 30);
+    }
+
+    #[test]
+    fn pixel_row_mut() {
+        let mut buf = GenericImageBuffer::<Rgb<u8>>::new(3, 3);
+        buf.set_pixel(0, 2, &Rgb::<u8>::new([10, 20, 30]));
+        buf.set_pixel(1, 2, &Rgb::<u8>::new([11, 21, 31]));
+        let row = buf.pixel_row_mut(2).unwrap();
+        assert_eq!(row[0], Rgb::<u8>::new([10, 20, 30]));
+        assert_eq!(row[1], Rgb::<u8>::new([11, 21, 31]));
     }
 
     #[test]
