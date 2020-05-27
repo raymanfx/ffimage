@@ -13,10 +13,12 @@ jobs:
     - {}
     - stage: build
       script:
-        - cargo build
+        - cargo build --no-default-features
+        - cargo build --features rayon
     - stage: test
       script:
-        - cargo test
+        - cargo test --no-default-features
+        - cargo test --features rayon
     - stage: fmt
       before_script:
         - rustup component add rustfmt
