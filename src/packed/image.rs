@@ -44,9 +44,9 @@ macro_rules! impl_ImageView {
 macro_rules! impl_ImageBuffer {
     ($id:ident) => {
         impl<'a, T: Pixel> ImageBuffer for $id<'a, T> {
-            fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> bool {
+            fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), ()> {
                 if x >= self.width() || y >= self.height() {
-                    return false;
+                    return Err(());
                 }
 
                 // determine the offset in the raw buffer
@@ -58,7 +58,7 @@ macro_rules! impl_ImageBuffer {
                     slice[i] = pix.at(i);
                 }
 
-                true
+                Ok(())
             }
         }
     };
@@ -349,7 +349,7 @@ impl<'a, T: Pixel> GenericFlatBuffer<'a, T> {
     /// let mut buf = GenericImageFlatBuffer::<Rgb<u8>>::new(&mut mem, 1, 1)
     ///     .expect("Memory region too small");
     /// let pix = Rgb::<u8>::new([255, 255, 255]);
-    /// buf.set_pixel(0, 0, &pix);
+    /// buf.set_pixel(0, 0, &pix).unwrap();
     /// ```
     pub fn new(raw: &'a mut [T::T], width: u32, height: u32) -> Option<Self> {
         let min_stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
@@ -391,7 +391,7 @@ impl<'a, T: Pixel> GenericFlatBuffer<'a, T> {
     /// let mut buf = GenericImageFlatBuffer::<Rgb<u8>>::with_stride(&mut mem, 1, 1, 4)
     ///     .expect("Memory region too small");
     /// let pix = Rgb::<u8>::new([255, 255, 255]);
-    /// buf.set_pixel(0, 0, &pix);
+    /// buf.set_pixel(0, 0, &pix).unwrap();
     /// ```
     pub fn with_stride(
         raw: &'a mut [T::T],
@@ -460,7 +460,7 @@ impl<'a, T: Pixel> GenericBuffer<'a, T> {
     ///
     /// let mut buf = GenericImageBuffer::<Rgb<u8>>::new(3, 3);
     /// let pix = Rgb::<u8>::new([255, 255, 255]);
-    /// buf.set_pixel(0, 0, &pix);
+    /// buf.set_pixel(0, 0, &pix).unwrap();
     /// ```
     pub fn new(width: u32, height: u32) -> Self {
         GenericBuffer {
@@ -493,7 +493,7 @@ impl<'a, T: Pixel> GenericBuffer<'a, T> {
     /// let mut buf = GenericImageBuffer::<Rgb<u8>>::with_raw(1, 1, &mem)
     ///     .expect("Memory region too small");
     /// let pix = Rgb::<u8>::new([255, 255, 255]);
-    /// buf.set_pixel(0, 0, &pix);
+    /// buf.set_pixel(0, 0, &pix).unwrap();
     /// ```
     pub fn with_raw(width: u32, height: u32, raw: &[T::T]) -> Option<Self> {
         let stride = width as usize * T::len();

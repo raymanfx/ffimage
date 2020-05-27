@@ -58,7 +58,7 @@ pub trait ImageView {
 /// Buffered image, provides read-write pixel access
 pub trait ImageBuffer: ImageView {
     /// Sets the pixel values at the specified coordinates
-    fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> bool;
+    fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), ()>;
 }
 
 /// Resizable images
