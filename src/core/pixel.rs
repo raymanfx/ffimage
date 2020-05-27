@@ -67,7 +67,7 @@ macro_rules! impl_Pixel {
 macro_rules! define_pixel {
     ($name:ident, $channels:expr, #[$doc:meta]) => {
         #[repr(C)]
-        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+        #[derive(Default, Debug, Copy, Clone, PartialEq, Eq)]
         #[$doc]
         pub struct $name<T: StorageType>(pub [T; $channels]);
 

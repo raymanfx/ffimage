@@ -12,7 +12,7 @@ impl StorageType for f32 {}
 impl StorageType for f64 {}
 
 /// Generic pixel container
-pub trait Pixel: Sized + Copy + Clone + IndexMut<usize> {
+pub trait Pixel: Sized + Default + Copy + Clone + Send + Sync + IndexMut<usize> {
     /// Type of the container elements
     type T: StorageType;
 
