@@ -7,4 +7,10 @@ pub use image::{
     GenericView as GenericImageView,
 };
 
-pub mod convert;
+cfg_if::cfg_if! {
+    if #[cfg(feature = "rayon")] {
+        pub mod convert_rayon;
+    } else {
+        pub mod convert;
+    }
+}
