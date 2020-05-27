@@ -3,8 +3,8 @@ pub use traits::{AccessPixel, AccessPixelMut};
 
 pub mod image;
 pub use image::{
-    GenericBuffer as GenericImageBuffer, GenericFlatBuffer as GenericImageFlatBuffer,
-    GenericView as GenericImageView,
+    DynamicView as DynamicImageView, FormatHint, GenericBuffer as GenericImageBuffer,
+    GenericFlatBuffer as GenericImageFlatBuffer, GenericView as GenericImageView,
 };
 
 pub mod convert;

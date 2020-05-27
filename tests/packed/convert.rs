@@ -1,6 +1,10 @@
+use std::convert::TryFrom;
+
 use ffimage::color::*;
 use ffimage::core::{Convert, ImageView, TryConvert};
-use ffimage::packed::{GenericImageBuffer, GenericImageFlatBuffer, GenericImageView};
+use ffimage::packed::{
+    DynamicImageView, FormatHint, GenericImageBuffer, GenericImageFlatBuffer, GenericImageView,
+};
 
 #[test]
 fn convert_rgb_to_gray() {
@@ -67,4 +71,30 @@ fn try_convert_rgb_to_gray() {
     let mut buf = GenericImageFlatBuffer::<Gray<u8>>::new(&mut mem_flat, 2, 1).unwrap();
     let result = view.try_convert(&mut buf);
     assert!(result.is_err());
+}
+
+#[test]
+fn try_convert_dynamic_to_gray() {
+    let mem: [u8; 12] = [10; 12];
+    let hint = FormatHint {
+        color: String::from("Rgb"),
+        channels: 3,
+    };
+    let dynamic_view = DynamicImageView::<u8>::new(&mem, 2, 2, hint).unwrap();
+    let generic_view = GenericImageView::<Rgb<u8>>::try_from(&dynamic_view).unwrap();
+    let mut buf = GenericImageBuffer::<Gray<u8>>::new(0, 0);
+    generic_view.try_convert(&mut buf).unwrap();
+
+    for i in 0..generic_view.height() {
+        for j in 0..generic_view.width() {
+            let pix_in = generic_view.get_pixel(j, i).unwrap();
+            let pix_out = buf.get_pixel(j, i).unwrap();
+
+            // rec601 luma
+            let y = (0.2126 * pix_in[0] as f32
+                + 0.7152 * pix_in[1] as f32
+                + 0.0722 * pix_in[2] as f32) as u8;
+            assert_eq!(pix_out, Gray::<u8>::new([y]));
+        }
+    }
 }
