@@ -88,22 +88,6 @@ macro_rules! impl_TryConvert {
     };
 }
 
-macro_rules! impl_From {
-    ($src:ident, $dst:ident) => {
-        impl<'a, SP, DP> From<&$src<'a, SP>> for $dst<'a, DP>
-        where
-            SP: Pixel,
-            DP: Pixel + From<SP>,
-        {
-            fn from(input: &$src<'a, SP>) -> Self {
-                let mut output = Self::new(input.width(), input.height());
-                input.convert(&mut output);
-                output
-            }
-        }
-    };
-}
-
 impl_Convert!(GenericView, GenericBuffer);
 impl_Convert!(GenericFlatBuffer, GenericBuffer);
 impl_Convert!(GenericBuffer, GenericBuffer);
@@ -111,7 +95,3 @@ impl_Convert!(GenericBuffer, GenericBuffer);
 impl_TryConvert!(GenericView, GenericFlatBuffer);
 impl_TryConvert!(GenericFlatBuffer, GenericFlatBuffer);
 impl_TryConvert!(GenericBuffer, GenericFlatBuffer);
-
-impl_From!(GenericView, GenericBuffer);
-impl_From!(GenericFlatBuffer, GenericBuffer);
-impl_From!(GenericBuffer, GenericBuffer);
