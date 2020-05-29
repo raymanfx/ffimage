@@ -63,7 +63,7 @@ macro_rules! impl_From {
         {
             fn from(input: &$src<'a, SP>) -> Self {
                 let mut output = Self::new(input.width(), input.height());
-                input.try_convert(&mut output).unwrap();
+                input.convert(&mut output);
                 output
             }
         }
