@@ -21,6 +21,7 @@ impl<T> UnsafeShared<T> {
         }
     }
 
+    #[allow(clippy::mut_from_ref)]
     pub fn get(&self) -> &mut T {
         unsafe { &mut *self.value.get() }
     }
@@ -55,6 +56,7 @@ macro_rules! impl_Convert {
         }
     };
 }
+
 macro_rules! impl_TryConvert {
     ($src:ident, $dst:ident) => {
         impl<'a, SP, DP> TryConvert<$dst<'a, DP>> for $src<'a, SP>
