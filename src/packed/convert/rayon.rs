@@ -3,9 +3,8 @@ use std::convert::From;
 
 use rayon::prelude::*;
 
-use crate::core::traits::{Convert, ImageView, Pixel, Resize, TryConvert};
+use crate::core::traits::{Convert, ImageBuffer, ImageView, Pixel, Resize, TryConvert};
 use crate::packed::image::{GenericBuffer, GenericFlatBuffer, GenericView};
-use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
 // This is a private helper struct to share buffers between threads in a lock free manner where we
 // would usually need a Mutex. Only use this when you can ensure that all usage of the wrapped
@@ -47,9 +46,9 @@ macro_rules! impl_Convert {
                 (0..self.height()).into_par_iter().for_each(|i| {
                     for j in 0..self.width() {
                         let output = output.get();
-                        let src_pix = self.pixel(j, i).unwrap();
-                        let dst_pix = output.pixel_mut(j, i).unwrap();
-                        *dst_pix = DP::from(*src_pix);
+                        let src_pix = self.get_pixel(j, i).unwrap();
+                        let dst_pix = DP::from(src_pix);
+                        output.set_pixel(j, i, &dst_pix).unwrap();
                     }
                 });
             }
@@ -78,9 +77,9 @@ macro_rules! impl_TryConvert {
                 (0..self.height()).into_par_iter().for_each(|i| {
                     for j in 0..self.width() {
                         let output = output.get();
-                        let src_pix = self.pixel(j, i).unwrap();
-                        let dst_pix = output.pixel_mut(j, i).unwrap();
-                        *dst_pix = DP::from(*src_pix);
+                        let src_pix = self.get_pixel(j, i).unwrap();
+                        let dst_pix = DP::from(src_pix);
+                        output.set_pixel(j, i, &dst_pix).unwrap();
                     }
                 });
 

@@ -1,8 +1,7 @@
 use std::convert::From;
 
-use crate::core::traits::{Convert, ImageView, Pixel, Resize, TryConvert};
+use crate::core::traits::{Convert, ImageBuffer, ImageView, Pixel, Resize, TryConvert};
 use crate::packed::image::{GenericBuffer, GenericFlatBuffer, GenericView};
-use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
 macro_rules! impl_Convert {
     ($src:ident, $dst:ident) => {
@@ -17,8 +16,9 @@ macro_rules! impl_Convert {
                 // iterate over the source pixels and convert them
                 for i in 0..self.height() {
                     for j in 0..self.width() {
-                        let src_pix = self.pixel(j, i).unwrap();
-                        *output.pixel_mut(j, i).unwrap() = DP::from(*src_pix);
+                        let src_pix = self.get_pixel(j, i).unwrap();
+                        let dst_pix = DP::from(src_pix);
+                        output.set_pixel(j, i, &dst_pix).unwrap();
                     }
                 }
             }
@@ -43,8 +43,9 @@ macro_rules! impl_TryConvert {
                 // iterate over the source pixels and convert them
                 for i in 0..self.height() {
                     for j in 0..self.width() {
-                        let src_pix = self.pixel(j, i).unwrap();
-                        *output.pixel_mut(j, i).unwrap() = DP::from(*src_pix);
+                        let src_pix = self.get_pixel(j, i).unwrap();
+                        let dst_pix = DP::from(src_pix);
+                        output.set_pixel(j, i, &dst_pix).unwrap();
                     }
                 }
 
