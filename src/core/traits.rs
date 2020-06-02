@@ -93,3 +93,32 @@ impl<B: ImageBuffer + Resize, V: ImageView + Convert<B>> TryConvert<B> for V {
         Ok(())
     }
 }
+
+/// Convert into a slice of types
+pub trait TryConvertSlice<O> {
+    type Error;
+
+    /// Converts the buffer into another, possibly with a different format
+    fn try_convert(&self, output: &mut [O]) -> Result<(), Self::Error>;
+}
+
+// Blanket implementation for pixel row conversion.
+// If we know how to convert a single pixel into another one, we can automatically convert between
+// rows as well. This obviously does not work for macropixels, where one pixel may transform into
+// several, so you need to implement the trait yourself for those types.
+
+impl<SP: Pixel, DP: From<SP>> TryConvertSlice<DP> for [SP] {
+    type Error = ();
+
+    fn try_convert(&self, output: &mut [DP]) -> Result<(), Self::Error> {
+        if self.len() != output.len() {
+            return Err(());
+        }
+
+        for i in 0..self.len() {
+            output[i] = DP::from(self[i]);
+        }
+
+        Ok(())
+    }
+}

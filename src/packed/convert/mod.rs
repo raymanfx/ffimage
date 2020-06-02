@@ -1,6 +1,6 @@
 use std::convert::From;
 
-use crate::core::traits::{Convert, ImageView, Pixel};
+use crate::core::traits::{Convert, ImageView, Pixel, TryConvertSlice};
 use crate::packed::image::{GenericBuffer, GenericFlatBuffer, GenericView};
 
 cfg_if::cfg_if! {
@@ -16,7 +16,9 @@ macro_rules! impl_From {
         impl<'a, SP, DP> From<&$src<'a, SP>> for $dst<'a, DP>
         where
             SP: Pixel,
-            DP: Pixel + From<SP>,
+            DP: Pixel,
+            [SP]: TryConvertSlice<DP>,
+            <[SP] as TryConvertSlice<DP>>::Error: std::fmt::Debug,
         {
             fn from(input: &$src<'a, SP>) -> Self {
                 let mut output = Self::new(input.width(), input.height());

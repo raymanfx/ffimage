@@ -1,10 +1,10 @@
 use std::cell::UnsafeCell;
-use std::convert::From;
 
 use rayon::prelude::*;
 
-use crate::core::traits::{Convert, ImageBuffer, ImageView, Pixel, Resize, TryConvert};
+use crate::core::traits::{Convert, ImageView, Pixel, Resize, TryConvert, TryConvertSlice};
 use crate::packed::image::{GenericBuffer, GenericFlatBuffer, GenericView};
+use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
 // This is a private helper struct to share buffers between threads in a lock free manner where we
 // would usually need a Mutex. Only use this when you can ensure that all usage of the wrapped
@@ -34,7 +34,9 @@ macro_rules! impl_Convert {
         impl<'a, SP, DP> Convert<$dst<'a, DP>> for $src<'a, SP>
         where
             SP: Pixel,
-            DP: Pixel + From<SP>,
+            DP: Pixel,
+            [SP]: TryConvertSlice<DP>,
+            <[SP] as TryConvertSlice<DP>>::Error: std::fmt::Debug,
         {
             fn convert(&self, output: &mut $dst<'a, DP>) {
                 output.resize(self.width(), self.height());
@@ -44,12 +46,10 @@ macro_rules! impl_Convert {
                 let output = UnsafeShared::new(output);
 
                 (0..self.height()).into_par_iter().for_each(|i| {
-                    for j in 0..self.width() {
-                        let output = output.get();
-                        let src_pix = self.get_pixel(j, i).unwrap();
-                        let dst_pix = DP::from(src_pix);
-                        output.set_pixel(j, i, &dst_pix).unwrap();
-                    }
+                    let output = output.get();
+                    let row_in = self.pixel_row(i).unwrap();
+                    let row_out = output.pixel_row_mut(i).unwrap();
+                    row_in.try_convert(row_out).unwrap();
                 });
             }
         }
@@ -61,7 +61,9 @@ macro_rules! impl_TryConvert {
         impl<'a, SP, DP> TryConvert<$dst<'a, DP>> for $src<'a, SP>
         where
             SP: Pixel,
-            DP: Pixel + From<SP>,
+            DP: Pixel,
+            [SP]: TryConvertSlice<DP>,
+            <[SP] as TryConvertSlice<DP>>::Error: std::fmt::Debug,
         {
             type Error = ();
 
@@ -75,12 +77,10 @@ macro_rules! impl_TryConvert {
                 let output = UnsafeShared::new(output);
 
                 (0..self.height()).into_par_iter().for_each(|i| {
-                    for j in 0..self.width() {
-                        let output = output.get();
-                        let src_pix = self.get_pixel(j, i).unwrap();
-                        let dst_pix = DP::from(src_pix);
-                        output.set_pixel(j, i, &dst_pix).unwrap();
-                    }
+                    let output = output.get();
+                    let row_in = self.pixel_row(i).unwrap();
+                    let row_out = output.pixel_row_mut(i).unwrap();
+                    row_in.try_convert(row_out).unwrap();
                 });
 
                 Ok(())
