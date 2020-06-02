@@ -8,16 +8,6 @@ use crate::color::gray::*;
 use crate::core::traits::{Pixel, StorageType};
 use crate::{create_pixel, define_pixel, impl_Pixel};
 
-macro_rules! impl_from_self_ref {
-    ($src:ident, $dst:ident) => {
-        impl<I: StorageType + AsPrimitive<O>, O: StorageType + 'static> From<&$src<I>> for $dst<O> {
-            fn from(pix: &$src<I>) -> Self {
-                Self::from(*pix)
-            }
-        }
-    };
-}
-
 macro_rules! impl_from_pix_to_pix3 {
     ($src:ident, $dst:ident, $_0:expr, $_1:expr, $_2:expr) => {
         impl<I: StorageType + AsPrimitive<O>, O: StorageType + 'static> From<$src<I>> for $dst<O> {
@@ -27,8 +17,6 @@ macro_rules! impl_from_pix_to_pix3 {
                 }
             }
         }
-
-        impl_from_self_ref!($src, $dst);
     };
 }
 
@@ -41,8 +29,6 @@ macro_rules! impl_from_pix_to_pix4 {
                 }
             }
         }
-
-        impl_from_self_ref!($src, $dst);
     };
 }
 
