@@ -1,7 +1,7 @@
 [package]
 name = "ffimage"
 description = "Foreign function image handling"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Christopher N. Hesse <raymanfx@gmail.com>"]
 edition = "2018"
 license = "MIT"
