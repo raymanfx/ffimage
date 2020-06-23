@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 use std::mem;
 
 use crate::core::iter::{PixelIter, PixelIterMut};
-use crate::core::traits::{ImageBuffer, ImageView, Pixel, Resize};
+use crate::core::traits::{CloneImage, ImageBuffer, ImageView, Pixel, Resize};
 use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
 macro_rules! impl_ImageView {
@@ -59,6 +59,30 @@ macro_rules! impl_ImageBuffer {
                 }
 
                 Ok(())
+            }
+        }
+    };
+}
+
+macro_rules! impl_CloneImage {
+    ($id:ident) => {
+        impl<'a, T: Pixel> CloneImage for $id<'a, T> {
+            type Output = GenericBuffer<'a, T>;
+
+            fn clone_into(&self, output: &mut Self::Output) {
+                output.resize(self.width, self.height);
+                // copy data without padding
+                for i in (0..self.height) {
+                    let src = self.pixel_row(i).unwrap();
+                    let dst = output.pixel_row_mut(i).unwrap();
+                    dst.copy_from_slice(src);
+                }
+            }
+
+            fn clone(&self) -> Self::Output {
+                let mut output = Self::Output::new(self.width, self.height);
+                self.clone_into(&mut output);
+                output
             }
         }
     };
@@ -317,6 +341,7 @@ impl<'a, T: Pixel> GenericView<'a, T> {
 impl_ImageView!(GenericView);
 impl_AccessPixel!(GenericView);
 impl_IntoIterator!(GenericView);
+impl_CloneImage!(GenericView);
 
 pub struct GenericFlatBuffer<'a, T: Pixel> {
     raw: &'a mut [T::T],
@@ -425,6 +450,7 @@ impl<'a, T: Pixel> GenericFlatBuffer<'a, T> {
 
 impl_ImageView!(GenericFlatBuffer);
 impl_ImageBuffer!(GenericFlatBuffer);
+impl_CloneImage!(GenericFlatBuffer);
 impl_AccessPixel!(GenericFlatBuffer);
 impl_AccessPixelMut!(GenericFlatBuffer);
 impl_IntoIterator!(GenericFlatBuffer);
@@ -547,10 +573,19 @@ impl<'a, T: Pixel> GenericBuffer<'a, T> {
             })
         }
     }
+
+    pub fn raw(&self) -> &[T::T] {
+        &self.raw
+    }
+
+    pub fn raw_mut(&mut self) -> &mut [T::T] {
+        &mut self.raw
+    }
 }
 
 impl_ImageView!(GenericBuffer);
 impl_ImageBuffer!(GenericBuffer);
+impl_CloneImage!(GenericBuffer);
 impl_Resize!(GenericBuffer);
 impl_AccessPixel!(GenericBuffer);
 impl_AccessPixelMut!(GenericBuffer);

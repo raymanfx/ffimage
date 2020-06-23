@@ -1,7 +1,7 @@
 use std::{array, mem, ops::IndexMut};
 
 /// Pixel backing type
-pub trait StorageType: Default + Copy + Clone + Send + Sync {}
+pub trait StorageType: Default + Copy + Send + Sync {}
 
 impl StorageType for u8 {}
 impl StorageType for u16 {}
@@ -12,7 +12,7 @@ impl StorageType for f32 {}
 impl StorageType for f64 {}
 
 /// Generic pixel container
-pub trait Pixel: Sized + Default + Copy + Clone + Send + Sync + IndexMut<usize> {
+pub trait Pixel: Sized + Default + Copy + Send + Sync + IndexMut<usize> {
     /// Type of the container elements
     type T: StorageType;
 
@@ -59,6 +59,17 @@ pub trait ImageView {
 pub trait ImageBuffer: ImageView {
     /// Sets the pixel values at the specified coordinates
     fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), ()>;
+}
+
+/// Cloneable images
+pub trait CloneImage {
+    type Output: ImageBuffer;
+
+    /// Clone an image into an already existing buffer, avoiding reallocations if possible
+    fn clone_into(&self, output: &mut Self::Output);
+
+    /// Clone an image type (view or buffer) and return a buffer
+    fn clone(&self) -> Self::Output;
 }
 
 /// Resizable images
