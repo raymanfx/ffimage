@@ -1,4 +1,4 @@
-use std::{array, mem, ops::IndexMut};
+use std::{array, fmt, mem, ops::IndexMut};
 
 /// Pixel backing type
 pub trait StorageType: Default + Copy + Send + Sync {}
@@ -86,7 +86,7 @@ pub trait Convert<B> {
 
 /// Convert between images
 pub trait TryConvert<B> {
-    type Error;
+    type Error: fmt::Debug;
 
     /// Converts the buffer into another, possibly with a different format
     fn try_convert(&self, output: &mut B) -> Result<(), Self::Error>;
@@ -107,7 +107,7 @@ impl<B: ImageBuffer + Resize, V: ImageView + Convert<B>> TryConvert<B> for V {
 
 /// Convert into a slice of types
 pub trait TryConvertSlice<O> {
-    type Error;
+    type Error: fmt::Debug;
 
     /// Converts the buffer into another, possibly with a different format
     fn try_convert(&self, output: &mut [O]) -> Result<(), Self::Error>;

@@ -9,7 +9,6 @@ macro_rules! impl_Convert {
             SP: Pixel,
             DP: Pixel,
             [SP]: TryConvertSlice<DP>,
-            <[SP] as TryConvertSlice<DP>>::Error: std::fmt::Debug,
         {
             fn convert(&self, output: &mut $dst<'a, DP>) {
                 output.resize(self.width(), self.height());
@@ -32,7 +31,6 @@ macro_rules! impl_TryConvert {
             SP: Pixel,
             DP: Pixel,
             [SP]: TryConvertSlice<DP>,
-            <[SP] as TryConvertSlice<DP>>::Error: std::fmt::Debug,
         {
             type Error = ();
 

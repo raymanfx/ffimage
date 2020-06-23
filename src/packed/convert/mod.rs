@@ -18,7 +18,6 @@ macro_rules! impl_From {
             SP: Pixel,
             DP: Pixel,
             [SP]: TryConvertSlice<DP>,
-            <[SP] as TryConvertSlice<DP>>::Error: std::fmt::Debug,
         {
             fn from(input: &$src<'a, SP>) -> Self {
                 let mut output = Self::new(input.width(), input.height());
