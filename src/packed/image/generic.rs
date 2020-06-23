@@ -1,4 +1,3 @@
-use std::marker::PhantomData;
 use std::mem;
 
 use crate::core::iter::{PixelIter, PixelIterMut};
@@ -7,35 +6,33 @@ use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
 macro_rules! impl_ImageView {
     ($id:ident) => {
-        impl<'a, T: Pixel> ImageView for $id<'a, T> {
-            type T = T;
+        type T = T;
 
-            fn width(&self) -> u32 {
-                self.width
+        fn width(&self) -> u32 {
+            self.width
+        }
+
+        fn height(&self) -> u32 {
+            self.height
+        }
+
+        fn stride(&self) -> usize {
+            (self.width() * T::channels() as u32) as usize * mem::size_of::<T::T>()
+                + self.row_padding
+        }
+
+        fn get_pixel(&self, x: u32, y: u32) -> Option<Self::T> {
+            if x >= self.width() || y >= self.height() {
+                return None;
             }
 
-            fn height(&self) -> u32 {
-                self.height
-            }
-
-            fn stride(&self) -> usize {
-                (self.width() * T::channels() as u32) as usize * mem::size_of::<T::T>()
-                    + self.row_padding
-            }
-
-            fn get_pixel(&self, x: u32, y: u32) -> Option<Self::T> {
-                if x >= self.width() || y >= self.height() {
-                    return None;
-                }
-
-                // determine the offset in the raw buffer
-                let stride_elems = self.stride() / mem::size_of::<T::T>();
-                let off: usize = y as usize * stride_elems + x as usize * T::channels() as usize;
-                let slice = &self.raw[off..off + T::channels() as usize];
-                match Self::T::try_from(slice) {
-                    Ok(pix) => Some(pix),
-                    Err(_) => None,
-                }
+            // determine the offset in the raw buffer
+            let stride_elems = self.stride() / mem::size_of::<T::T>();
+            let off: usize = y as usize * stride_elems + x as usize * T::channels() as usize;
+            let slice = &self.raw[off..off + T::channels() as usize];
+            match Self::T::try_from(slice) {
+                Ok(pix) => Some(pix),
+                Err(_) => None,
             }
         }
     };
@@ -43,208 +40,176 @@ macro_rules! impl_ImageView {
 
 macro_rules! impl_ImageBuffer {
     ($id:ident) => {
-        impl<'a, T: Pixel> ImageBuffer for $id<'a, T> {
-            fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), ()> {
-                if x >= self.width() || y >= self.height() {
-                    return Err(());
-                }
-
-                // determine the offset in the raw buffer
-                let stride_elems = self.stride() / mem::size_of::<T::T>();
-                let off: usize = y as usize * stride_elems + x as usize * T::channels() as usize;
-                let slice = &mut self.raw[off..off + T::channels() as usize];
-                for i in 0..slice.len() {
-                    // i can never be out of bounds because the pixel is strongly typed
-                    slice[i] = pix.at(i);
-                }
-
-                Ok(())
+        fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), ()> {
+            if x >= self.width() || y >= self.height() {
+                return Err(());
             }
+
+            // determine the offset in the raw buffer
+            let stride_elems = self.stride() / mem::size_of::<T::T>();
+            let off: usize = y as usize * stride_elems + x as usize * T::channels() as usize;
+            let slice = &mut self.raw[off..off + T::channels() as usize];
+            for i in 0..slice.len() {
+                // i can never be out of bounds because the pixel is strongly typed
+                slice[i] = pix.at(i);
+            }
+
+            Ok(())
         }
     };
 }
 
 macro_rules! impl_CloneImage {
     ($id:ident) => {
-        impl<'a, T: Pixel> CloneImage for $id<'a, T> {
-            type Output = GenericBuffer<'a, T>;
+        type Output = GenericBuffer<T>;
 
-            fn clone_into(&self, output: &mut Self::Output) {
-                output.resize(self.width, self.height);
-                // copy data without padding
-                for i in (0..self.height) {
-                    let src = self.pixel_row(i).unwrap();
-                    let dst = output.pixel_row_mut(i).unwrap();
-                    dst.copy_from_slice(src);
-                }
+        fn clone_into(&self, output: &mut Self::Output) {
+            output.resize(self.width, self.height);
+            // copy data without padding
+            for i in (0..self.height) {
+                let src = self.pixel_row(i).unwrap();
+                let dst = output.pixel_row_mut(i).unwrap();
+                dst.copy_from_slice(src);
             }
+        }
 
-            fn clone(&self) -> Self::Output {
-                let mut output = Self::Output::new(self.width, self.height);
-                self.clone_into(&mut output);
-                output
-            }
+        fn clone(&self) -> Self::Output {
+            let mut output = Self::Output::new(self.width, self.height);
+            self.clone_into(&mut output);
+            output
         }
     };
 }
 
 macro_rules! impl_Resize {
     ($id:ident) => {
-        impl<'a, T: Pixel> Resize for $id<'a, T> {
-            fn resize(&mut self, width: u32, height: u32) {
-                self.width = width;
-                self.height = height;
-                self.row_padding = 0;
-                self.raw.resize(
-                    (width * height * T::channels() as u32) as usize,
-                    T::T::default(),
-                );
-            }
+        fn resize(&mut self, width: u32, height: u32) {
+            self.width = width;
+            self.height = height;
+            self.row_padding = 0;
+            self.raw.resize(
+                (width * height * T::channels() as u32) as usize,
+                T::T::default(),
+            );
         }
     };
 }
 
 macro_rules! impl_AccessPixel {
     ($id:ident) => {
-        impl<'a, T: Pixel> AccessPixel for $id<'a, T> {
-            type PixelType = T;
+        type PixelType = T;
 
-            fn pixel_row(&self, y: u32) -> Option<&[Self::PixelType]> {
-                if y >= self.height() {
-                    return None;
-                }
-
-                // determine the offset in the raw buffer
-                let stride_elems = self.stride() / mem::size_of::<T::T>();
-                let off: usize = y as usize * stride_elems;
-                let slice = &self.raw[off..off + stride_elems];
-                let (head, body, _tail) = unsafe { slice.align_to::<T>() };
-                assert!(head.is_empty(), "raw data is not aligned");
-                assert_eq!(
-                    body.len(),
-                    self.width() as usize,
-                    "invalid number of row items"
-                );
-
-                Some(&body)
+        fn pixel_row(&self, y: u32) -> Option<&[Self::PixelType]> {
+            if y >= self.height() {
+                return None;
             }
 
-            fn pixel(&self, x: u32, y: u32) -> Option<&Self::PixelType> {
-                if x >= self.width() || y >= self.height() {
-                    return None;
-                }
+            // determine the offset in the raw buffer
+            let stride_elems = self.stride() / mem::size_of::<T::T>();
+            let off: usize = y as usize * stride_elems;
+            let slice = &self.raw[off..off + stride_elems];
+            let (head, body, _tail) = unsafe { slice.align_to::<T>() };
+            assert!(head.is_empty(), "raw data is not aligned");
+            assert_eq!(
+                body.len(),
+                self.width() as usize,
+                "invalid number of row items"
+            );
 
-                let row = self.pixel_row(y)?;
-                Some(&row[x as usize])
+            Some(&body)
+        }
+
+        fn pixel(&self, x: u32, y: u32) -> Option<&Self::PixelType> {
+            if x >= self.width() || y >= self.height() {
+                return None;
             }
+
+            let row = self.pixel_row(y)?;
+            Some(&row[x as usize])
         }
     };
 }
 
 macro_rules! impl_AccessPixelMut {
     ($id:ident) => {
-        impl<'a, T: Pixel> AccessPixelMut for $id<'a, T> {
-            type PixelType = T;
+        type PixelType = T;
 
-            fn pixel_row_mut(&mut self, y: u32) -> Option<&mut [Self::PixelType]> {
-                let width = self.width();
-                if y >= self.height() {
-                    return None;
-                }
-
-                // determine the offset in the raw buffer
-                let stride_elems = self.stride() / mem::size_of::<T::T>();
-                let off: usize = y as usize * stride_elems;
-                let slice = &mut self.raw[off..off + stride_elems];
-                let (head, body, _tail) = unsafe { slice.align_to_mut::<T>() };
-                assert!(head.is_empty(), "raw data is not aligned");
-                assert_eq!(body.len(), width as usize, "invalid number of row items");
-
-                Some(&mut body[..])
+        fn pixel_row_mut(&mut self, y: u32) -> Option<&mut [Self::PixelType]> {
+            let width = self.width();
+            if y >= self.height() {
+                return None;
             }
 
-            fn pixel_mut(&mut self, x: u32, y: u32) -> Option<&mut Self::PixelType> {
-                if x >= self.width() || y >= self.height() {
-                    return None;
-                }
+            // determine the offset in the raw buffer
+            let stride_elems = self.stride() / mem::size_of::<T::T>();
+            let off: usize = y as usize * stride_elems;
+            let slice = &mut self.raw[off..off + stride_elems];
+            let (head, body, _tail) = unsafe { slice.align_to_mut::<T>() };
+            assert!(head.is_empty(), "raw data is not aligned");
+            assert_eq!(body.len(), width as usize, "invalid number of row items");
 
-                let row = self.pixel_row_mut(y)?;
-                Some(&mut row[x as usize])
+            Some(&mut body[..])
+        }
+
+        fn pixel_mut(&mut self, x: u32, y: u32) -> Option<&mut Self::PixelType> {
+            if x >= self.width() || y >= self.height() {
+                return None;
             }
+
+            let row = self.pixel_row_mut(y)?;
+            Some(&mut row[x as usize])
         }
     };
 }
 
-macro_rules! impl_IntoIterator {
+macro_rules! impl_Iterator {
     ($id:ident) => {
-        impl<'a, T: Pixel> Iterator for PixelIter<'a, $id<'a, T>> {
-            type Item = &'a T;
+        type Item = &'a T;
 
-            fn next(&mut self) -> Option<Self::Item> {
-                if self.x >= self.width {
-                    self.x = 0;
-                    self.y += 1;
-                }
-
-                if self.y >= self.height {
-                    return None;
-                }
-
-                let pixel = self.img.pixel(self.x, self.y);
-                self.x += 1;
-
-                pixel
+        fn next(&mut self) -> Option<Self::Item> {
+            if self.x >= self.width {
+                self.x = 0;
+                self.y += 1;
             }
-        }
 
-        impl<'a, T: Pixel> IntoIterator for &'a $id<'a, T> {
-            type Item = &'a T;
-            type IntoIter = PixelIter<'a, $id<'a, T>>;
-
-            fn into_iter(self) -> PixelIter<'a, $id<'a, T>> {
-                PixelIter::new(self)
+            if self.y >= self.height {
+                return None;
             }
+
+            let pixel = self.img.pixel(self.x, self.y);
+            self.x += 1;
+
+            pixel
         }
     };
 }
 
 // iterators handing out mutable references are not allowed by safe rust as explained here:
 // https://stackoverflow.com/a/27641876/11423991
-macro_rules! impl_IntoIteratorMut {
+macro_rules! impl_IteratorMut {
     ($id:ident) => {
-        impl<'a, T: Pixel> Iterator for PixelIterMut<'a, $id<'a, T>> {
-            type Item = &'a mut T;
+        type Item = &'a mut T;
 
-            fn next(&mut self) -> Option<Self::Item> {
-                if self.x >= self.width {
-                    self.x = 0;
-                    self.y += 1;
-                }
-
-                if self.y >= self.height {
-                    return None;
-                }
-
-                let pixel = self.img.pixel_mut(self.x, self.y);
-                self.x += 1;
-
-                // This is safe because...
-                // (from http://stackoverflow.com/questions/25730586):
-                // The Rust compiler does not know that when you ask a mutable iterator for the
-                // next element, that you get a different reference every time and never the same
-                // reference twice. Of course, we know that such an iterator won't give you the
-                // same reference twice.
-                unsafe { mem::transmute(pixel) }
+        fn next(&mut self) -> Option<Self::Item> {
+            if self.x >= self.width {
+                self.x = 0;
+                self.y += 1;
             }
-        }
 
-        impl<'a, T: Pixel> IntoIterator for &'a mut $id<'a, T> {
-            type Item = &'a mut T;
-            type IntoIter = PixelIterMut<'a, $id<'a, T>>;
-
-            fn into_iter(self) -> PixelIterMut<'a, $id<'a, T>> {
-                PixelIterMut::new(self)
+            if self.y >= self.height {
+                return None;
             }
+
+            let pixel = self.img.pixel_mut(self.x, self.y);
+            self.x += 1;
+
+            // This is safe because...
+            // (from http://stackoverflow.com/questions/25730586):
+            // The Rust compiler does not know that when you ask a mutable iterator for the
+            // next element, that you get a different reference every time and never the same
+            // reference twice. Of course, we know that such an iterator won't give you the
+            // same reference twice.
+            unsafe { mem::transmute(pixel) }
         }
     };
 }
@@ -338,10 +303,30 @@ impl<'a, T: Pixel> GenericView<'a, T> {
     }
 }
 
-impl_ImageView!(GenericView);
-impl_AccessPixel!(GenericView);
-impl_IntoIterator!(GenericView);
-impl_CloneImage!(GenericView);
+impl<'a, T: Pixel> ImageView for GenericView<'a, T> {
+    impl_ImageView!(GenericView);
+}
+
+impl<'a, T: Pixel> CloneImage for GenericView<'a, T> {
+    impl_CloneImage!(GenericView);
+}
+
+impl<'a, T: Pixel> AccessPixel for GenericView<'a, T> {
+    impl_AccessPixel!(GenericView);
+}
+
+impl<'a, T: Pixel> Iterator for PixelIter<'a, GenericView<'a, T>> {
+    impl_Iterator!(GenericView);
+}
+
+impl<'a, T: Pixel> IntoIterator for &'a GenericView<'a, T> {
+    type Item = &'a T;
+    type IntoIter = PixelIter<'a, GenericView<'a, T>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        PixelIter::new(self)
+    }
+}
 
 pub struct GenericFlatBuffer<'a, T: Pixel> {
     raw: &'a mut [T::T],
@@ -448,24 +433,60 @@ impl<'a, T: Pixel> GenericFlatBuffer<'a, T> {
     }
 }
 
-impl_ImageView!(GenericFlatBuffer);
-impl_ImageBuffer!(GenericFlatBuffer);
-impl_CloneImage!(GenericFlatBuffer);
-impl_AccessPixel!(GenericFlatBuffer);
-impl_AccessPixelMut!(GenericFlatBuffer);
-impl_IntoIterator!(GenericFlatBuffer);
-impl_IntoIteratorMut!(GenericFlatBuffer);
+impl<'a, T: Pixel> ImageView for GenericFlatBuffer<'a, T> {
+    impl_ImageView!(GenericFlatBuffer);
+}
 
-pub struct GenericBuffer<'a, T: Pixel> {
+impl<'a, T: Pixel> ImageBuffer for GenericFlatBuffer<'a, T> {
+    impl_ImageBuffer!(GenericFlatBuffer);
+}
+
+impl<'a, T: Pixel> CloneImage for GenericFlatBuffer<'a, T> {
+    impl_CloneImage!(GenericFlatBuffer);
+}
+
+impl<'a, T: Pixel> AccessPixel for GenericFlatBuffer<'a, T> {
+    impl_AccessPixel!(GenericFlatBuffer);
+}
+
+impl<'a, T: Pixel> AccessPixelMut for GenericFlatBuffer<'a, T> {
+    impl_AccessPixelMut!(GenericFlatBuffer);
+}
+
+impl<'a, T: Pixel> Iterator for PixelIter<'a, GenericFlatBuffer<'a, T>> {
+    impl_Iterator!(GenericFlatBuffer);
+}
+
+impl<'a, T: Pixel> Iterator for PixelIterMut<'a, GenericFlatBuffer<'a, T>> {
+    impl_IteratorMut!(GenericFlatBuffer);
+}
+
+impl<'a, T: Pixel> IntoIterator for &'a GenericFlatBuffer<'a, T> {
+    type Item = &'a T;
+    type IntoIter = PixelIter<'a, GenericFlatBuffer<'a, T>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        PixelIter::new(self)
+    }
+}
+
+impl<'a, T: Pixel> IntoIterator for &'a mut GenericFlatBuffer<'a, T> {
+    type Item = &'a mut T;
+    type IntoIter = PixelIterMut<'a, GenericFlatBuffer<'a, T>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        PixelIterMut::new(self)
+    }
+}
+
+pub struct GenericBuffer<T: Pixel> {
     raw: Vec<T::T>,
     width: u32,
     height: u32,
     row_padding: usize,
-
-    phantom: PhantomData<&'a ()>,
 }
 
-impl<'a, T: Pixel> GenericBuffer<'a, T> {
+impl<T: Pixel> GenericBuffer<T> {
     /// Returns an image buffer with pixel accessors
     ///
     /// The backing memory is allocated by this struct. There is no padding added so only the
@@ -494,7 +515,6 @@ impl<'a, T: Pixel> GenericBuffer<'a, T> {
             width,
             height,
             row_padding: 0,
-            phantom: PhantomData,
         }
     }
 
@@ -531,7 +551,6 @@ impl<'a, T: Pixel> GenericBuffer<'a, T> {
                 width,
                 height,
                 row_padding: 0,
-                phantom: PhantomData,
             })
         }
     }
@@ -569,7 +588,6 @@ impl<'a, T: Pixel> GenericBuffer<'a, T> {
                 width,
                 height,
                 row_padding: 0,
-                phantom: PhantomData,
             })
         }
     }
@@ -583,11 +601,52 @@ impl<'a, T: Pixel> GenericBuffer<'a, T> {
     }
 }
 
-impl_ImageView!(GenericBuffer);
-impl_ImageBuffer!(GenericBuffer);
-impl_CloneImage!(GenericBuffer);
-impl_Resize!(GenericBuffer);
-impl_AccessPixel!(GenericBuffer);
-impl_AccessPixelMut!(GenericBuffer);
-impl_IntoIterator!(GenericBuffer);
-impl_IntoIteratorMut!(GenericBuffer);
+impl<T: Pixel> ImageView for GenericBuffer<T> {
+    impl_ImageView!(GenericBuffer);
+}
+
+impl<T: Pixel> ImageBuffer for GenericBuffer<T> {
+    impl_ImageBuffer!(GenericBuffer);
+}
+
+impl<T: Pixel> CloneImage for GenericBuffer<T> {
+    impl_CloneImage!(GenericBuffer);
+}
+
+impl<T: Pixel> Resize for GenericBuffer<T> {
+    impl_Resize!(GenericBuffer);
+}
+
+impl<T: Pixel> AccessPixel for GenericBuffer<T> {
+    impl_AccessPixel!(GenericBuffer);
+}
+
+impl<T: Pixel> AccessPixelMut for GenericBuffer<T> {
+    impl_AccessPixelMut!(GenericBuffer);
+}
+
+impl<'a, T: Pixel> Iterator for PixelIter<'a, GenericBuffer<T>> {
+    impl_Iterator!(GenericBuffer);
+}
+
+impl<'a, T: Pixel> Iterator for PixelIterMut<'a, GenericBuffer<T>> {
+    impl_IteratorMut!(GenericBuffer);
+}
+
+impl<'a, T: Pixel> IntoIterator for &'a GenericBuffer<T> {
+    type Item = &'a T;
+    type IntoIter = PixelIter<'a, GenericBuffer<T>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        PixelIter::new(self)
+    }
+}
+
+impl<'a, T: Pixel> IntoIterator for &'a mut GenericBuffer<T> {
+    type Item = &'a mut T;
+    type IntoIter = PixelIterMut<'a, GenericBuffer<T>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        PixelIterMut::new(self)
+    }
+}
