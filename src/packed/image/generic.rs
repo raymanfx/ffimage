@@ -509,6 +509,44 @@ impl<'a, T: Pixel> GenericBuffer<'a, T> {
             })
         }
     }
+
+    /// Returns an image buffer with pixel accessors
+    ///
+    /// The pixel memory is copied into an allocated buffer owned by this struct.
+    ///
+    /// # Arguments
+    ///
+    /// * `width` - Width in pixels
+    /// * `height` - Height in pixels
+    /// * `raw` - Pixel memory storage to copy
+    /// * `stride` - Length of a pixel row in bytes
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ffimage::color::rgb::*;
+    /// use ffimage::core::ImageBuffer;
+    /// use ffimage::packed::GenericImageBuffer;
+    ///
+    /// let mem = vec![0; 3];
+    /// let mut buf = GenericImageBuffer::<Rgb<u8>>::with_raw_stride(1, 1, &mem, 3)
+    ///     .expect("Memory region too small");
+    /// let pix = Rgb::<u8>::new([255, 255, 255]);
+    /// buf.set_pixel(0, 0, &pix).unwrap();
+    /// ```
+    pub fn with_raw_stride(width: u32, height: u32, raw: &[T::T], stride: usize) -> Option<Self> {
+        if raw.len() < height as usize * stride {
+            None
+        } else {
+            Some(GenericBuffer {
+                raw: raw.to_vec(),
+                width,
+                height,
+                row_padding: 0,
+                phantom: PhantomData,
+            })
+        }
+    }
 }
 
 impl_ImageView!(GenericBuffer);
