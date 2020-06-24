@@ -5,26 +5,13 @@ use crate::color::*;
 use crate::core::traits::StorageType;
 use crate::packed::image::generic::GenericView;
 
-/// Describes an image format in terms of color scheme and number of channels.
-///
-/// The color string should indicate the underlying color model of the image, e.g. "Gray" or "Rgb".
-/// It is used in the conversion methods to cast the raw bytes to a strongly typed image view.
-/// The number of channels are used to derive the bytes per pixel and thus validate the raw buffer
-/// buffer length.
-pub struct FormatHint {
-    /// Color model representation, e.g. "RGB"
-    pub color: String,
-    /// Number of channels
-    pub channels: usize,
-}
-
 /// Image view parametrized by its pixel type
 pub struct DynamicView<'a, T> {
     pub raw: &'a [T],
     pub width: u32,
     pub height: u32,
+    pub pixfmt: String,
     pub stride: usize,
-    pub hint: FormatHint,
 }
 
 impl<'a, T: StorageType> DynamicView<'a, T> {
@@ -35,20 +22,20 @@ impl<'a, T: StorageType> DynamicView<'a, T> {
     /// * `raw` - Raw memory region to interpret as typed image
     /// * `width` - Width in pixels
     /// * `height` - Height in pixels
-    /// * `hint` - Format hint
+    /// * `pixfmt` - Pixelformat
+    /// * `channels` - Number of channels
     ///
     /// # Example
     ///
     /// ```
-    /// use ffimage::packed::{DynamicImageView, FormatHint};
+    /// use ffimage::packed::DynamicImageView;
     ///
-    /// let mem = vec![0; 14];
-    /// let hint = FormatHint { color: String::from("RGB"), channels: 3 };
-    /// let view = DynamicImageView::<u8>::new(&mem, 2, 2, hint)
+    /// let mem = vec![0; 12];
+    /// let view = DynamicImageView::<u8>::new(&mem, 2, 2, "Rgb", 3)
     ///     .expect("Memory region too small");
     /// ```
-    pub fn new(raw: &'a [T], width: u32, height: u32, hint: FormatHint) -> Option<Self> {
-        let min_stride = width as usize * hint.channels as usize * mem::size_of::<T>();
+    pub fn new(raw: &'a [T], width: u32, height: u32, pixfmt: &str, channels: u32) -> Option<Self> {
+        let min_stride = width as usize * channels as usize * mem::size_of::<T>();
         let raw_len = raw.len() * mem::size_of::<T>();
 
         if raw_len < height as usize * min_stride {
@@ -58,54 +45,50 @@ impl<'a, T: StorageType> DynamicView<'a, T> {
                 raw,
                 width,
                 height,
+                pixfmt: String::from(pixfmt),
                 stride: min_stride,
-                hint,
             })
         }
     }
 
     /// Returns an image view with unknown pixel type
     ///
-    /// This constructor takes an additional stride for strided image buffers.
-    /// The stride must be a multiple of the size of the internal backing type T of the pixel.
-    ///
     /// # Arguments
     ///
     /// * `raw` - Raw memory region to interpret as typed image
     /// * `width` - Width in pixels
     /// * `height` - Height in pixels
-    /// * `hint` - Format hint
+    /// * `pixfmt` - Pixelformat
     /// * `stride` - Length of a pixel row in bytes
     ///
     /// # Example
     ///
     /// ```
-    /// use ffimage::packed::{DynamicImageView, FormatHint};
+    /// use ffimage::packed::DynamicImageView;
     ///
-    /// let mem = vec![0; 14];
-    /// let hint = FormatHint { color: String::from("RGB"), channels: 3 };
-    /// let view = DynamicImageView::<u8>::with_stride(&mem, 2, 2, hint, 7 /* one byte padding */)
+    /// let mem = vec![0; 12];
+    /// let view = DynamicImageView::<u8>::with_stride(&mem, 2, 2, "Rgb", 6)
     ///     .expect("Memory region too small");
     /// ```
     pub fn with_stride(
         raw: &'a [T],
         width: u32,
         height: u32,
-        hint: FormatHint,
+        pixfmt: &str,
         stride: usize,
     ) -> Option<Self> {
-        let min_stride = width as usize * hint.channels as usize * mem::size_of::<T>();
+        let len = height as usize * stride;
         let raw_len = raw.len() * mem::size_of::<T>();
 
-        if raw_len < height as usize * min_stride {
+        if raw_len != len {
             None
         } else {
             Some(DynamicView {
                 raw,
                 width,
                 height,
+                pixfmt: String::from(pixfmt),
                 stride,
-                hint,
             })
         }
     }
@@ -120,7 +103,7 @@ macro_rules! impl_TryFrom {
             type Error = ();
 
             fn try_from(input: &DynamicView<'a, T>) -> Result<Self, Self::Error> {
-                match input.hint.color.as_str() {
+                match input.pixfmt.as_str() {
                     $hint => {
                         let view = GenericView::<$pix<T>>::with_stride(
                             input.raw,

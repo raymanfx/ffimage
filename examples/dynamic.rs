@@ -2,7 +2,6 @@ extern crate ffimage;
 
 use std::convert::TryFrom;
 
-use ffimage::packed::FormatHint;
 use ffimage::prelude::*;
 
 fn main() {
@@ -11,18 +10,10 @@ fn main() {
     // read-only memory.
     let mem: [u8; 12] = [0; 12];
 
-    // Create a format hint for dynamic images.
-    // Use this to describe a raw memory region when you intend to use generic types for conversion
-    // or buffer transformation.
-    let hint = FormatHint {
-        color: String::from("Rgb"),
-        channels: 3,
-    };
-
     // A dynamic view represents an image buffer just like a generic view does, but the format does
     // not have to be known at compile time. Instead, these views can be converted into generic
     // views at runtime.
-    let dynamic_view = DynamicImageView::<u8>::new(&mem, 2, 2, hint).unwrap();
+    let dynamic_view = DynamicImageView::<u8>::new(&mem, 2, 2, "Rgb", 3).unwrap();
 
     // Create a statically typed view of the image, assuming it is RGB 24 bits per pixel.
     // The u8 parameter denotes the internal storage type used by image pixels. In our case, each
