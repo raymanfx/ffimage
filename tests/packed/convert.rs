@@ -76,7 +76,7 @@ fn try_convert_rgb_to_gray() {
 #[test]
 fn try_convert_dynamic_to_gray() {
     let mem: [u8; 12] = [10; 12];
-    let dynamic_view = DynamicImageView::<u8>::new(&mem, 2, 2, "Rgb", 3).unwrap();
+    let dynamic_view = DynamicImageView::<u8>::new(&mem, 2, 2, 3).unwrap();
     let generic_view = GenericImageView::<Rgb<u8>>::try_from(&dynamic_view).unwrap();
     let mut buf = GenericImageBuffer::<Gray<u8>>::new(0, 0);
     generic_view.try_convert(&mut buf).unwrap();
