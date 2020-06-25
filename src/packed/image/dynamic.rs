@@ -69,7 +69,7 @@ impl<'a, T: StorageType> DynamicView<'a, T> {
         let len = height as usize * stride;
         let raw_len = raw.len() * mem::size_of::<T>();
 
-        if raw_len != len {
+        if stride > 0 && raw_len != len {
             None
         } else {
             Some(DynamicView {
