@@ -3,7 +3,7 @@ pub use traits::{AccessPixel, AccessPixelMut};
 
 pub mod image;
 pub use image::{
-    DynamicBuffer as DynamicImageBuffer, DynamicView as DynamicImageView,
+    DynamicBuffer as DynamicImageBuffer, DynamicStorageType, DynamicView as DynamicImageView,
     GenericBuffer as GenericImageBuffer, GenericFlatBuffer as GenericImageFlatBuffer,
     GenericView as GenericImageView,
 };

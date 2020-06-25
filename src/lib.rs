@@ -9,9 +9,9 @@ pub mod prelude {
         core::iter::{PixelIter, PixelIterMut},
         core::traits::{Convert, ImageBuffer, ImageView, Macropixel, Pixel, Resize, TryConvert},
         packed::image::{
-            DynamicBuffer as DynamicImageBuffer, DynamicView as DynamicImageView,
-            GenericBuffer as GenericImageBuffer, GenericFlatBuffer as GenericImageFlatBuffer,
-            GenericView as GenericImageView,
+            DynamicBuffer as DynamicImageBuffer, DynamicStorageType,
+            DynamicView as DynamicImageView, GenericBuffer as GenericImageBuffer,
+            GenericFlatBuffer as GenericImageFlatBuffer, GenericView as GenericImageView,
         },
         packed::traits::{AccessPixel, AccessPixelMut},
     };

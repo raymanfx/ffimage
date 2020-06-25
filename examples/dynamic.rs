@@ -13,7 +13,7 @@ fn main() {
     // A dynamic view represents an image buffer just like a generic view does, but the format does
     // not have to be known at compile time. Instead, these views can be converted into generic
     // views at runtime.
-    let dynamic_view = DynamicImageView::<u8>::new(&mem, 2, 2, 3).unwrap();
+    let dynamic_view = DynamicImageView::new(&mem, 2, 2, 3).unwrap();
 
     // Create a statically typed view of the image, assuming it is RGB 24 bits per pixel.
     // The u8 parameter denotes the internal storage type used by image pixels. In our case, each
