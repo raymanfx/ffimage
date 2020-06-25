@@ -17,8 +17,7 @@ macro_rules! impl_ImageView {
         }
 
         fn stride(&self) -> usize {
-            (self.width() * T::channels() as u32) as usize * mem::size_of::<T::T>()
-                + self.row_padding
+            self.stride
         }
 
         fn get_pixel(&self, x: u32, y: u32) -> Option<Self::T> {
@@ -86,7 +85,7 @@ macro_rules! impl_Resize {
         fn resize(&mut self, width: u32, height: u32) {
             self.width = width;
             self.height = height;
-            self.row_padding = 0;
+            self.stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
             self.raw.resize(
                 (width * height * T::channels() as u32) as usize,
                 T::T::default(),
@@ -219,7 +218,7 @@ pub struct GenericView<'a, T: Pixel> {
     raw: &'a [T::T],
     width: u32,
     height: u32,
-    row_padding: usize,
+    stride: usize,
 }
 
 impl<'a, T: Pixel> GenericView<'a, T> {
@@ -244,58 +243,24 @@ impl<'a, T: Pixel> GenericView<'a, T> {
     /// let view = GenericImageView::<Rgb<u8>>::new(&mem, 1, 1).expect("Memory region too small");
     /// ```
     pub fn new(raw: &'a [T::T], width: u32, height: u32) -> Option<Self> {
-        let min_stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
-        let raw_len = raw.len() * mem::size_of::<T::T>();
-
-        if raw_len < height as usize * min_stride {
-            None
-        } else {
-            Some(GenericView {
-                raw,
-                width,
-                height,
-                row_padding: 0,
-            })
+        // require the same amount of elements per row
+        if raw.len() % height as usize != 0 {
+            return None;
         }
-    }
 
-    /// Returns an image view with pixel accessors
-    ///
-    /// The backing memory storage must have the same element type as the underlying pixel type of
-    /// the image. This constructor takes an additional stride for strided image buffers.
-    /// The stride must be a multiple of the size of the internal backing type T of the pixel.
-    ///
-    /// # Arguments
-    ///
-    /// * `raw` - Raw memory region to interpret as typed image
-    /// * `width` - Width in pixels
-    /// * `height` - Height in pixels
-    /// * `stride` - Length of a pixel row in bytes
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ffimage::color::rgb::*;
-    /// use ffimage::packed::GenericImageView;
-    ///
-    /// let mem = vec![0; 14];
-    /// let view = GenericImageView::<Rgb<u8>>::with_stride(&mem, 2, 2, 7 /* one byte padding */)
-    ///     .expect("Memory region too small");
-    /// ```
-    pub fn with_stride(raw: &'a [T::T], width: u32, height: u32, stride: usize) -> Option<Self> {
+        // validate bytes per line
         let min_stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
-        let raw_len = raw.len() * mem::size_of::<T::T>();
-
-        if raw_len < height as usize * stride || stride % mem::size_of::<T::T>() != 0 {
-            None
-        } else {
-            Some(GenericView {
-                raw,
-                width,
-                height,
-                row_padding: stride - min_stride,
-            })
+        let stride = raw.len() * mem::size_of::<T::T>() / height as usize;
+        if stride < min_stride {
+            return None;
         }
+
+        Some(GenericView {
+            raw,
+            width,
+            height,
+            stride,
+        })
     }
 
     pub fn raw(&self) -> &[T::T] {
@@ -332,7 +297,7 @@ pub struct GenericFlatBuffer<'a, T: Pixel> {
     raw: &'a mut [T::T],
     width: u32,
     height: u32,
-    row_padding: usize,
+    stride: usize,
 }
 
 impl<'a, T: Pixel> GenericFlatBuffer<'a, T> {
@@ -362,66 +327,24 @@ impl<'a, T: Pixel> GenericFlatBuffer<'a, T> {
     /// buf.set_pixel(0, 0, &pix).unwrap();
     /// ```
     pub fn new(raw: &'a mut [T::T], width: u32, height: u32) -> Option<Self> {
-        let min_stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
-        let raw_len = raw.len() * mem::size_of::<T::T>();
-
-        if raw_len < height as usize * min_stride {
-            None
-        } else {
-            Some(GenericFlatBuffer {
-                raw,
-                width,
-                height,
-                row_padding: 0,
-            })
+        // require the same amount of elements per row
+        if raw.len() % height as usize != 0 {
+            return None;
         }
-    }
 
-    /// Returns a flat image buffer with pixel accessors
-    ///
-    /// 'Flat' means that the backing memory of the image is not allocated by the struct.
-    /// Thus, this struct allows for reusing existing (mutable) buffers and still having images
-    /// defined by their pixel types.
-    ///
-    /// # Arguments
-    ///
-    /// * `raw` - Raw memory region
-    /// * `width` - Width in pixels
-    /// * `height` - Height in pixels
-    /// * `stride` - Length of a pixel row in bytes
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ffimage::color::rgb::*;
-    /// use ffimage::core::ImageBuffer;
-    /// use ffimage::packed::GenericImageFlatBuffer;
-    ///
-    /// let mut mem = vec![0; 4];
-    /// let mut buf = GenericImageFlatBuffer::<Rgb<u8>>::with_stride(&mut mem, 1, 1, 4)
-    ///     .expect("Memory region too small");
-    /// let pix = Rgb::<u8>::new([255, 255, 255]);
-    /// buf.set_pixel(0, 0, &pix).unwrap();
-    /// ```
-    pub fn with_stride(
-        raw: &'a mut [T::T],
-        width: u32,
-        height: u32,
-        stride: usize,
-    ) -> Option<Self> {
+        // validate bytes per line
         let min_stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
-        let raw_len = raw.len() * mem::size_of::<T::T>();
-
-        if raw_len < height as usize * stride || stride % mem::size_of::<T::T>() != 0 {
-            None
-        } else {
-            Some(GenericFlatBuffer {
-                raw,
-                width,
-                height,
-                row_padding: stride - min_stride,
-            })
+        let stride = raw.len() * mem::size_of::<T::T>() / height as usize;
+        if stride < min_stride {
+            return None;
         }
+
+        Some(GenericFlatBuffer {
+            raw,
+            width,
+            height,
+            stride,
+        })
     }
 
     pub fn raw(&self) -> &[T::T] {
@@ -483,7 +406,7 @@ pub struct GenericBuffer<T: Pixel> {
     raw: Vec<T::T>,
     width: u32,
     height: u32,
-    row_padding: usize,
+    stride: usize,
 }
 
 impl<T: Pixel> GenericBuffer<T> {
@@ -510,11 +433,13 @@ impl<T: Pixel> GenericBuffer<T> {
     /// buf.set_pixel(0, 0, &pix).unwrap();
     /// ```
     pub fn new(width: u32, height: u32) -> Self {
+        let stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
+
         GenericBuffer {
             raw: vec![T::T::default(); height as usize * width as usize * T::len()],
             width,
             height,
-            row_padding: 0,
+            stride,
         }
     }
 
@@ -542,54 +467,24 @@ impl<T: Pixel> GenericBuffer<T> {
     /// buf.set_pixel(0, 0, &pix).unwrap();
     /// ```
     pub fn with_raw(width: u32, height: u32, raw: &[T::T]) -> Option<Self> {
-        let stride = width as usize * T::len();
-        if raw.len() < height as usize * stride {
-            None
-        } else {
-            Some(GenericBuffer {
-                raw: raw.to_vec(),
-                width,
-                height,
-                row_padding: 0,
-            })
+        // require the same amount of elements per row
+        if raw.len() % height as usize != 0 {
+            return None;
         }
-    }
 
-    /// Returns an image buffer with pixel accessors
-    ///
-    /// The pixel memory is copied into an allocated buffer owned by this struct.
-    ///
-    /// # Arguments
-    ///
-    /// * `width` - Width in pixels
-    /// * `height` - Height in pixels
-    /// * `raw` - Pixel memory storage to copy
-    /// * `stride` - Length of a pixel row in bytes
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ffimage::color::rgb::*;
-    /// use ffimage::core::ImageBuffer;
-    /// use ffimage::packed::GenericImageBuffer;
-    ///
-    /// let mem = vec![0; 3];
-    /// let mut buf = GenericImageBuffer::<Rgb<u8>>::with_raw_stride(1, 1, &mem, 3)
-    ///     .expect("Memory region too small");
-    /// let pix = Rgb::<u8>::new([255, 255, 255]);
-    /// buf.set_pixel(0, 0, &pix).unwrap();
-    /// ```
-    pub fn with_raw_stride(width: u32, height: u32, raw: &[T::T], stride: usize) -> Option<Self> {
-        if raw.len() < height as usize * stride {
-            None
-        } else {
-            Some(GenericBuffer {
-                raw: raw.to_vec(),
-                width,
-                height,
-                row_padding: 0,
-            })
+        // validate bytes per line
+        let min_stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
+        let stride = raw.len() * mem::size_of::<T::T>() / height as usize;
+        if stride < min_stride {
+            return None;
         }
+
+        Some(GenericBuffer {
+            raw: raw.to_vec(),
+            width,
+            height,
+            stride,
+        })
     }
 
     pub fn raw(&self) -> &[T::T] {

@@ -32,19 +32,24 @@ impl<'a, T: StorageType> DynamicView<'a, T> {
     ///     .expect("Memory region too small");
     /// ```
     pub fn new(raw: &'a [T], width: u32, height: u32, channels: u32) -> Option<Self> {
-        let min_stride = width as usize * channels as usize * mem::size_of::<T>();
-        let raw_len = raw.len() * mem::size_of::<T>();
-
-        if raw_len < height as usize * min_stride {
-            None
-        } else {
-            Some(DynamicView {
-                raw,
-                width,
-                height,
-                stride: min_stride,
-            })
+        // require the same amount of elements per row
+        if raw.len() % height as usize != 0 {
+            return None;
         }
+
+        // validate bytes per line
+        let min_stride = width as usize * channels as usize * mem::size_of::<T>();
+        let stride = raw.len() * mem::size_of::<T>() / height as usize;
+        if stride < min_stride {
+            return None;
+        }
+
+        Some(DynamicView {
+            raw,
+            width,
+            height,
+            stride,
+        })
     }
 
     /// Returns an image view with unknown pixel type
@@ -70,15 +75,15 @@ impl<'a, T: StorageType> DynamicView<'a, T> {
         let raw_len = raw.len() * mem::size_of::<T>();
 
         if stride > 0 && raw_len != len {
-            None
-        } else {
-            Some(DynamicView {
-                raw,
-                width,
-                height,
-                stride,
-            })
+            return None;
         }
+
+        Some(DynamicView {
+            raw,
+            width,
+            height,
+            stride,
+        })
     }
 }
 
@@ -89,8 +94,7 @@ where
     type Error = ();
 
     fn try_from(input: &DynamicView<'a, T::T>) -> Result<Self, Self::Error> {
-        let view =
-            GenericView::<T>::with_stride(input.raw, input.width, input.height, input.stride);
+        let view = GenericView::<T>::new(input.raw, input.width, input.height);
         match view {
             Some(view) => Ok(view),
             None => Err(()),

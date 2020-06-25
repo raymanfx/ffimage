@@ -21,7 +21,7 @@ macro_rules! test_ImageView {
             assert_eq!(view.stride(), 3 * 3);
 
             let mut mem = vec![0; 30];
-            let view = $id::<Rgb<u8>>::with_stride(&mut mem, 3, 3, 10).unwrap();
+            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
             assert_eq!(view.stride(), 3 * 3 + 1);
         }
 
@@ -76,7 +76,7 @@ macro_rules! test_ImageView {
             mem[20] = 10;
             mem[21] = 20;
             mem[22] = 30;
-            let view = $id::<Rgb<u8>>::with_stride(&mut mem, 3, 3, 10).unwrap();
+            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
             let pix = view.get_pixel(0, 2).unwrap();
             assert_eq!(pix[0], 10);
             assert_eq!(pix[1], 20);
@@ -104,7 +104,7 @@ macro_rules! test_ImageView {
             mem[10] = 11;
             mem[11] = 21;
             mem[12] = 31;
-            let view = $id::<Rgb<u8>>::with_stride(&mut mem, 2, 2, 7).unwrap();
+            let view = $id::<Rgb<u8>>::new(&mut mem, 2, 2).unwrap();
             let row = view.pixel_row(1).unwrap();
             assert_eq!(row[0], Rgb::<u8>::new([10, 20, 30]));
             assert_eq!(row[1], Rgb::<u8>::new([11, 21, 31]));
@@ -126,7 +126,7 @@ macro_rules! test_ImageView {
             mem[20] = 10;
             mem[21] = 20;
             mem[22] = 30;
-            let view = $id::<Rgb<u8>>::with_stride(&mut mem, 3, 3, 10).unwrap();
+            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
             let pix = view.pixel(0, 2).unwrap();
             assert_eq!(pix[0], 10);
             assert_eq!(pix[1], 20);
@@ -148,7 +148,7 @@ macro_rules! test_ImageBuffer {
             assert_eq!(pix[2], 30);
 
             let mut mem = vec![0; 30];
-            let mut buf = $id::<Rgb<u8>>::with_stride(&mut mem, 3, 3, 10).unwrap();
+            let mut buf = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
             buf.set_pixel(0, 2, &Rgb::<u8>::new([10, 20, 30])).unwrap();
             let pix = buf.get_pixel(0, 2).unwrap();
             assert_eq!(pix[0], 10);
@@ -177,7 +177,7 @@ macro_rules! test_ImageBuffer {
             mem[10] = 11;
             mem[11] = 21;
             mem[12] = 31;
-            let mut buf = $id::<Rgb<u8>>::with_stride(&mut mem, 2, 2, 7).unwrap();
+            let mut buf = $id::<Rgb<u8>>::new(&mut mem, 2, 2).unwrap();
             let row = buf.pixel_row_mut(1).unwrap();
             assert_eq!(row[0], Rgb::<u8>::new([10, 20, 30]));
             assert_eq!(row[1], Rgb::<u8>::new([11, 21, 31]));
@@ -197,7 +197,7 @@ macro_rules! test_ImageBuffer {
             assert_eq!(pix[2], 33);
 
             let mut mem = vec![0; 30];
-            let mut buf = $id::<Rgb<u8>>::with_stride(&mut mem, 3, 3, 10).unwrap();
+            let mut buf = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
             let pix = buf.pixel_mut(0, 2).unwrap();
             pix[0] = 11;
             pix[1] = 22;

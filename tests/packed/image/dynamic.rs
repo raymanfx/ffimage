@@ -9,6 +9,13 @@ mod view {
         assert_eq!(view.width, 3);
         assert_eq!(view.height, 3);
         assert_eq!(view.stride, 3 * 3);
+
+        let mem = vec![0; 30];
+        let view = DynamicImageView::<u8>::new(&mem, 3, 3, 3 /* channels */).unwrap();
+        assert_eq!(view.raw.len(), 3 * 3 * 3 + 3);
+        assert_eq!(view.width, 3);
+        assert_eq!(view.height, 3);
+        assert_eq!(view.stride, 3 * 3 + 1);
     }
 
     #[test]
