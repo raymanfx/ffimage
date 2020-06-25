@@ -35,6 +35,21 @@ pub trait Pixel: Sized + Default + Copy + Send + Sync + IndexMut<usize> {
     fn len() -> usize {
         Self::channels() as usize * mem::size_of::<Self::T>()
     }
+
+    /// Number of image pixels for this pixel
+    fn subpixels() -> u8;
+}
+
+/// Macropixel container
+pub trait Macropixel: Pixel {
+    /// Type of the image pixel
+    type Subpixel: Pixel;
+
+    /// Convert image pixels into a macropixel
+    fn from_subpixels(pixels: &[Self::Subpixel]) -> Self;
+
+    /// Convert into image pixels
+    fn to_subpixels(&self) -> [Self::Subpixel];
 }
 
 /// View into an image, provides read-only pixel access

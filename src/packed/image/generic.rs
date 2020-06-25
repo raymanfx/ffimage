@@ -83,11 +83,12 @@ macro_rules! impl_CloneImage {
 macro_rules! impl_Resize {
     ($id:ident) => {
         fn resize(&mut self, width: u32, height: u32) {
+            let pixels_per_row = width / T::subpixels() as u32;
             self.width = width;
             self.height = height;
-            self.stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
+            self.stride = pixels_per_row as usize * T::channels() as usize * mem::size_of::<T::T>();
             self.raw.resize(
-                (width * height * T::channels() as u32) as usize,
+                (height * pixels_per_row * T::channels() as u32) as usize,
                 T::T::default(),
             );
         }
@@ -104,6 +105,7 @@ macro_rules! impl_AccessPixel {
             }
 
             // determine the offset in the raw buffer
+            let pixels_per_row = self.width() / T::subpixels() as u32;
             let stride_elems = self.stride() / mem::size_of::<T::T>();
             let off: usize = y as usize * stride_elems;
             let slice = &self.raw[off..off + stride_elems];
@@ -111,7 +113,7 @@ macro_rules! impl_AccessPixel {
             assert!(head.is_empty(), "raw data is not aligned");
             assert_eq!(
                 body.len(),
-                self.width() as usize,
+                pixels_per_row as usize,
                 "invalid number of row items"
             );
 
@@ -124,6 +126,7 @@ macro_rules! impl_AccessPixel {
             }
 
             let row = self.pixel_row(y)?;
+            let x = x / T::subpixels() as u32;
             Some(&row[x as usize])
         }
     };
@@ -134,18 +137,22 @@ macro_rules! impl_AccessPixelMut {
         type PixelType = T;
 
         fn pixel_row_mut(&mut self, y: u32) -> Option<&mut [Self::PixelType]> {
-            let width = self.width();
             if y >= self.height() {
                 return None;
             }
 
             // determine the offset in the raw buffer
+            let pixels_per_row = self.width() / T::subpixels() as u32;
             let stride_elems = self.stride() / mem::size_of::<T::T>();
             let off: usize = y as usize * stride_elems;
             let slice = &mut self.raw[off..off + stride_elems];
             let (head, body, _tail) = unsafe { slice.align_to_mut::<T>() };
             assert!(head.is_empty(), "raw data is not aligned");
-            assert_eq!(body.len(), width as usize, "invalid number of row items");
+            assert_eq!(
+                body.len(),
+                pixels_per_row as usize,
+                "invalid number of row items"
+            );
 
             Some(&mut body[..])
         }
@@ -156,6 +163,7 @@ macro_rules! impl_AccessPixelMut {
             }
 
             let row = self.pixel_row_mut(y)?;
+            let x = x / T::subpixels() as u32;
             Some(&mut row[x as usize])
         }
     };
@@ -249,7 +257,8 @@ impl<'a, T: Pixel> GenericView<'a, T> {
         }
 
         // validate bytes per line
-        let min_stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
+        let pixels_per_row = width / T::subpixels() as u32;
+        let min_stride = pixels_per_row as usize * T::channels() as usize * mem::size_of::<T::T>();
         let stride = raw.len() * mem::size_of::<T::T>() / height as usize;
         if stride < min_stride {
             return None;
@@ -333,7 +342,8 @@ impl<'a, T: Pixel> GenericFlatBuffer<'a, T> {
         }
 
         // validate bytes per line
-        let min_stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
+        let pixels_per_row = width / T::subpixels() as u32;
+        let min_stride = pixels_per_row as usize * T::channels() as usize * mem::size_of::<T::T>();
         let stride = raw.len() * mem::size_of::<T::T>() / height as usize;
         if stride < min_stride {
             return None;
@@ -433,10 +443,11 @@ impl<T: Pixel> GenericBuffer<T> {
     /// buf.set_pixel(0, 0, &pix).unwrap();
     /// ```
     pub fn new(width: u32, height: u32) -> Self {
-        let stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
+        let pixels_per_row = width / T::subpixels() as u32;
+        let stride = pixels_per_row as usize * T::channels() as usize * mem::size_of::<T::T>();
 
         GenericBuffer {
-            raw: vec![T::T::default(); height as usize * width as usize * T::len()],
+            raw: vec![T::T::default(); height as usize * pixels_per_row as usize * T::len()],
             width,
             height,
             stride,
@@ -473,7 +484,8 @@ impl<T: Pixel> GenericBuffer<T> {
         }
 
         // validate bytes per line
-        let min_stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
+        let pixels_per_row = width / T::subpixels() as u32;
+        let min_stride = pixels_per_row as usize * T::channels() as usize * mem::size_of::<T::T>();
         let stride = raw.len() * mem::size_of::<T::T>() / height as usize;
         if stride < min_stride {
             return None;
