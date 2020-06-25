@@ -6,6 +6,11 @@
 
 
 
+#### 0.3 (released)
+> * New DynamicImageBuffer type
+> * DynamicImageView no longer stores a format hint
+> * Automatic stride calculation and verification
+
 #### 0.2 (released)
 > * Improved color conversion performance
 > * Parallel color conversion using Rayon
