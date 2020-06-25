@@ -97,3 +97,85 @@ where
         }
     }
 }
+
+/// Image buffer parametrized by its pixel type
+pub struct DynamicBuffer<T> {
+    pub raw: Vec<T>,
+    pub width: u32,
+    pub height: u32,
+    pub stride: usize,
+}
+
+impl<T: StorageType> DynamicBuffer<T> {
+    /// Returns an image view with unknown pixel type
+    ///
+    /// # Arguments
+    ///
+    /// * `width` - Width in pixels
+    /// * `height` - Height in pixels
+    /// * `channels` - Number of channels
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ffimage::packed::DynamicImageBuffer;
+    ///
+    /// let buf = DynamicImageBuffer::<u8>::new(2, 2, 3);
+    /// ```
+    pub fn new(width: u32, height: u32, channels: u32) -> Self {
+        let stride = width as usize * channels as usize * mem::size_of::<T>();
+        let mut buf = DynamicBuffer {
+            raw: Vec::new(),
+            width,
+            height,
+            stride,
+        };
+
+        buf.raw
+            .resize((height * width * channels) as usize, T::default());
+        buf
+    }
+
+    /// Returns an image view with unknown pixel type
+    ///
+    /// # Arguments
+    ///
+    /// * `width` - Width in pixels
+    /// * `height` - Height in pixels
+    /// * `channels` - Number of channels
+    /// * `raw` - Raw memory region to interpret as typed image
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ffimage::packed::DynamicImageBuffer;
+    ///
+    /// let mem = vec![0; 12];
+    /// let buf = DynamicImageBuffer::<u8>::with_raw(2, 2, 3, &mem);
+    /// ```
+    pub fn with_raw(width: u32, height: u32, channels: u32, raw: &[T]) -> Self {
+        let stride = width as usize * channels as usize * mem::size_of::<T>();
+        DynamicBuffer {
+            raw: raw.to_vec(),
+            width,
+            height,
+            stride,
+        }
+    }
+
+    pub fn raw(&self) -> &[T] {
+        &self.raw
+    }
+
+    pub fn raw_mut(&mut self) -> &mut [T] {
+        &mut self.raw
+    }
+
+    pub fn resize(&mut self, width: u32, height: u32, channels: u32) {
+        self.width = width;
+        self.height = height;
+        self.stride = width as usize * channels as usize * mem::size_of::<T>();
+        self.raw
+            .resize((height * width * channels) as usize, T::default());
+    }
+}
