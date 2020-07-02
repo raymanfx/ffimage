@@ -13,7 +13,7 @@ macro_rules! impl_TryConvert {
             for i in 0..self.height() {
                 let row_in = self.pixel_row(i).unwrap();
                 let row_out = output.pixel_row_mut(i).unwrap();
-                let res = row_in.try_convert(row_out);
+                let res = SP::try_convert(row_in, row_out);
                 if res.is_err() {
                     return Err(())
                 }
@@ -37,7 +37,7 @@ macro_rules! impl_TryConvertFlat {
             for i in 0..self.height() {
                 let row_in = self.pixel_row(i).unwrap();
                 let row_out = output.pixel_row_mut(i).unwrap();
-                let res = row_in.try_convert(row_out);
+                let res = SP::try_convert(row_in, row_out);
                 if res.is_err() {
                     return Err(())
                 }
@@ -52,7 +52,7 @@ impl<'a, SP, DP> TryConvert<GenericBuffer<DP>> for GenericView<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
-    [SP]: TryConvertSlice<DP>,
+    SP: TryConvertSlice<DP>,
 {
     impl_TryConvert!();
 }
@@ -61,7 +61,7 @@ impl<'a, SP, DP> TryConvert<GenericBuffer<DP>> for GenericFlatBuffer<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
-    [SP]: TryConvertSlice<DP>,
+    SP: TryConvertSlice<DP>,
 {
     impl_TryConvert!();
 }
@@ -70,7 +70,7 @@ impl<SP, DP> TryConvert<GenericBuffer<DP>> for GenericBuffer<SP>
 where
     SP: Pixel,
     DP: Pixel,
-    [SP]: TryConvertSlice<DP>,
+    SP: TryConvertSlice<DP>,
 {
     impl_TryConvert!();
 }
@@ -79,7 +79,7 @@ impl<'a, SP, DP> TryConvert<GenericFlatBuffer<'a, DP>> for GenericView<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
-    [SP]: TryConvertSlice<DP>,
+    SP: TryConvertSlice<DP>,
 {
     impl_TryConvertFlat!();
 }
@@ -88,7 +88,7 @@ impl<'a, SP, DP> TryConvert<GenericFlatBuffer<'a, DP>> for GenericFlatBuffer<'a,
 where
     SP: Pixel,
     DP: Pixel,
-    [SP]: TryConvertSlice<DP>,
+    SP: TryConvertSlice<DP>,
 {
     impl_TryConvertFlat!();
 }
@@ -97,7 +97,7 @@ impl<'a, SP, DP> TryConvert<GenericFlatBuffer<'a, DP>> for GenericBuffer<SP>
 where
     SP: Pixel,
     DP: Pixel,
-    [SP]: TryConvertSlice<DP>,
+    SP: TryConvertSlice<DP>,
 {
     impl_TryConvertFlat!();
 }

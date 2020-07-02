@@ -96,11 +96,11 @@ pub trait TryConvert<B> {
 }
 
 /// Convert into a slice of types
-pub trait TryConvertSlice<O> {
+pub trait TryConvertSlice<DP: Pixel>: Sized {
     type Error: fmt::Debug;
 
     /// Converts the buffer into another, possibly with a different format
-    fn try_convert(&self, output: &mut [O]) -> Result<(), Self::Error>;
+    fn try_convert(input: &[Self], output: &mut [DP]) -> Result<(), Self::Error>;
 }
 
 // Blanket implementation for pixel row conversion.
@@ -108,16 +108,16 @@ pub trait TryConvertSlice<O> {
 // rows as well. This obviously does not work for macropixels, where one pixel may transform into
 // several, so you need to implement the trait yourself for those types.
 
-impl<SP: Pixel, DP: From<SP>> TryConvertSlice<DP> for [SP] {
+impl<SP: Pixel, DP: Pixel + From<SP>> TryConvertSlice<DP> for SP {
     type Error = ();
 
-    fn try_convert(&self, output: &mut [DP]) -> Result<(), Self::Error> {
-        if self.len() != output.len() {
+    fn try_convert(input: &[SP], output: &mut [DP]) -> Result<(), Self::Error> {
+        if input.len() != output.len() {
             return Err(());
         }
 
-        for i in 0..self.len() {
-            output[i] = DP::from(self[i]);
+        for i in 0..input.len() {
+            output[i] = DP::from(input[i]);
         }
 
         Ok(())
