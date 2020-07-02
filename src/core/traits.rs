@@ -19,12 +19,6 @@ pub trait Pixel: Sized + Default + Copy + Send + Sync + IndexMut<usize> {
     /// Returns the channel value at the specified index
     fn at(&self, index: usize) -> Self::T;
 
-    /// Transmute the slice into a pixel reference
-    fn cast_from_slice(raw: &[Self::T]) -> Option<&Self>;
-
-    /// Transmute the slice into a writable pixel reference
-    fn cast_from_slice_mut(raw: &mut [Self::T]) -> Option<&mut Self>;
-
     /// Convert a memory region into a pixel by copying the bytes
     fn try_from(raw: &[Self::T]) -> Result<Self, array::TryFromSliceError>;
 

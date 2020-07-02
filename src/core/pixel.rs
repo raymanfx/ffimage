@@ -9,31 +9,6 @@ macro_rules! impl_Pixel {
                 self.0[index]
             }
 
-            fn cast_from_slice(raw: &[Self::T]) -> Option<&Self> {
-                let array: &[T; $channels];
-                match <&[T; $channels]>::try_from(raw) {
-                    Ok(arr) => array = arr,
-                    Err(_) => return None,
-                }
-
-                let (head, body, _tail) = unsafe { array.align_to::<Self>() };
-                assert!(head.is_empty(), "raw data is not aligned");
-                Some(&body[0])
-            }
-
-            fn cast_from_slice_mut(raw: &mut [Self::T]) -> Option<&mut Self> {
-                let array: &mut [T; $channels];
-
-                match <&mut [T; $channels]>::try_from(raw) {
-                    Ok(arr) => array = arr,
-                    Err(_) => return None,
-                }
-
-                let (head, body, _tail) = unsafe { array.align_to_mut::<Self>() };
-                assert!(head.is_empty(), "raw data is not aligned");
-                Some(&mut body[0])
-            }
-
             fn try_from(raw: &[Self::T]) -> Result<Self, array::TryFromSliceError> {
                 match <[T; $channels]>::try_from(raw) {
                     Ok(components) => Ok($name { 0: components }),

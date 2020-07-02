@@ -60,26 +60,6 @@ mod tests {
     }
 
     #[test]
-    fn cast_from_slice() {
-        let mem = vec![255; 3];
-        let pix = Bgr::<u8>::cast_from_slice(&mem).unwrap();
-
-        assert_eq!(pix.at(0), 255);
-        assert_eq!(pix.at(0), 255);
-        assert_eq!(pix.at(0), 255);
-    }
-
-    #[test]
-    fn cast_from_slice_mut() {
-        let mut mem = vec![255; 3];
-        let pix = Bgr::<u8>::cast_from_slice_mut(&mut mem).unwrap();
-
-        assert_eq!(pix.at(0), 255);
-        assert_eq!(pix.at(0), 255);
-        assert_eq!(pix.at(0), 255);
-    }
-
-    #[test]
     fn try_from() {
         let mem = vec![255; 3];
         let pix: Bgr<u8> = Pixel::try_from(&mem).unwrap();
