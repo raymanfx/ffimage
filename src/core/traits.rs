@@ -94,30 +94,11 @@ pub trait Resize {
 }
 
 /// Convert between images
-pub trait Convert<B> {
-    /// Converts the buffer into another, possibly with a different format
-    fn convert(&self, output: &mut B);
-}
-
-/// Convert between images
 pub trait TryConvert<B> {
     type Error: fmt::Debug;
 
     /// Converts the buffer into another, possibly with a different format
     fn try_convert(&self, output: &mut B) -> Result<(), Self::Error>;
-}
-
-// For resizable buffers, one should implement the Convert trait because the conversion cannot
-// fail. We provide a blanket implementation of the TryConvert trait based on the Convert
-// implementation.
-
-impl<B: ImageBuffer + Resize, V: ImageView + Convert<B>> TryConvert<B> for V {
-    type Error = ();
-
-    fn try_convert(&self, output: &mut B) -> Result<(), Self::Error> {
-        self.convert(output);
-        Ok(())
-    }
 }
 
 /// Convert into a slice of types

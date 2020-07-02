@@ -31,5 +31,5 @@ fn main() {
     // This cannot fail since the target buffer is resizable.
     // If the pixel conversion between source and target image is not defined, the compiler will
     // refuse to compile this line.
-    generic_view.convert(&mut buf);
+    generic_view.try_convert(&mut buf).unwrap();
 }

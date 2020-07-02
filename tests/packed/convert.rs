@@ -1,7 +1,7 @@
 use std::convert::TryFrom;
 
 use ffimage::color::*;
-use ffimage::core::{Convert, ImageView, TryConvert};
+use ffimage::core::{ImageView, TryConvert};
 use ffimage::packed::{
     DynamicImageView, GenericImageBuffer, GenericImageFlatBuffer, GenericImageView,
 };
@@ -11,7 +11,7 @@ fn convert_rgb_to_gray() {
     let mem: [u8; 12] = [10; 12];
     let view = GenericImageView::<Rgb<u8>>::new(&mem, 2, 2).unwrap();
     let mut buf = GenericImageBuffer::<Gray<u8>>::new(0, 0);
-    view.convert(&mut buf);
+    view.try_convert(&mut buf).unwrap();
 
     for i in 0..view.height() {
         for j in 0..view.width() {
@@ -32,7 +32,7 @@ fn convert_gray_to_rgb() {
     let mem: [u16; 4] = [0; 4];
     let view = GenericImageView::<Gray<u16>>::new(&mem, 2, 2).unwrap();
     let mut buf = GenericImageBuffer::<Rgb<u16>>::new(0, 0);
-    view.convert(&mut buf);
+    view.try_convert(&mut buf).unwrap();
 
     for i in 0..view.height() {
         for j in 0..view.width() {

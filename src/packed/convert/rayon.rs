@@ -2,7 +2,7 @@ use std::cell::UnsafeCell;
 
 use rayon::prelude::*;
 
-use crate::core::traits::{Convert, ImageView, Pixel, Resize, TryConvert, TryConvertSlice};
+use crate::core::traits::{ImageView, Pixel, Resize, TryConvert, TryConvertSlice};
 use crate::packed::image::{GenericBuffer, GenericFlatBuffer, GenericView};
 use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
@@ -29,9 +29,11 @@ impl<T> UnsafeShared<T> {
 unsafe impl<T: ?Sized + Send> Send for UnsafeShared<T> {}
 unsafe impl<T: ?Sized + Send> Sync for UnsafeShared<T> {}
 
-macro_rules! impl_Convert {
+macro_rules! impl_TryConvert {
     () => {
-        fn convert(&self, output: &mut GenericBuffer<DP>) {
+        type Error = ();
+
+        fn try_convert(&self, output: &mut GenericBuffer<DP>) -> Result<(), Self::Error> {
             output.resize(self.width(), self.height());
 
             // It is safe to use the shared, lock free wrapper here because each thread
@@ -42,13 +44,16 @@ macro_rules! impl_Convert {
                 let output = output.get();
                 let row_in = self.pixel_row(i).unwrap();
                 let row_out = output.pixel_row_mut(i).unwrap();
+                // TODO: marshal error
                 row_in.try_convert(row_out).unwrap();
             });
+
+            Ok(())
         }
     };
 }
 
-macro_rules! impl_TryConvert {
+macro_rules! impl_TryConvertFlat {
     () => {
         type Error = ();
 
@@ -65,6 +70,7 @@ macro_rules! impl_TryConvert {
                 let output = output.get();
                 let row_in = self.pixel_row(i).unwrap();
                 let row_out = output.pixel_row_mut(i).unwrap();
+                // TODO: marshal error
                 row_in.try_convert(row_out).unwrap();
             });
 
@@ -73,31 +79,31 @@ macro_rules! impl_TryConvert {
     };
 }
 
-impl<'a, SP, DP> Convert<GenericBuffer<DP>> for GenericView<'a, SP>
+impl<'a, SP, DP> TryConvert<GenericBuffer<DP>> for GenericView<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
     [SP]: TryConvertSlice<DP>,
 {
-    impl_Convert!();
+    impl_TryConvert!();
 }
 
-impl<'a, SP, DP> Convert<GenericBuffer<DP>> for GenericFlatBuffer<'a, SP>
+impl<'a, SP, DP> TryConvert<GenericBuffer<DP>> for GenericFlatBuffer<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
     [SP]: TryConvertSlice<DP>,
 {
-    impl_Convert!();
+    impl_TryConvert!();
 }
 
-impl<SP, DP> Convert<GenericBuffer<DP>> for GenericBuffer<SP>
+impl<SP, DP> TryConvert<GenericBuffer<DP>> for GenericBuffer<SP>
 where
     SP: Pixel,
     DP: Pixel,
     [SP]: TryConvertSlice<DP>,
 {
-    impl_Convert!();
+    impl_TryConvert!();
 }
 
 impl<'a, 'b, SP, DP> TryConvert<GenericFlatBuffer<'b, DP>> for GenericView<'a, SP>
@@ -106,7 +112,7 @@ where
     DP: Pixel,
     [SP]: TryConvertSlice<DP>,
 {
-    impl_TryConvert!();
+    impl_TryConvertFlat!();
 }
 
 impl<'a, 'b, SP, DP> TryConvert<GenericFlatBuffer<'b, DP>> for GenericFlatBuffer<'a, SP>
@@ -115,7 +121,7 @@ where
     DP: Pixel,
     [SP]: TryConvertSlice<DP>,
 {
-    impl_TryConvert!();
+    impl_TryConvertFlat!();
 }
 
 impl<'b, SP, DP> TryConvert<GenericFlatBuffer<'b, DP>> for GenericBuffer<SP>
@@ -124,5 +130,5 @@ where
     DP: Pixel,
     [SP]: TryConvertSlice<DP>,
 {
-    impl_TryConvert!();
+    impl_TryConvertFlat!();
 }

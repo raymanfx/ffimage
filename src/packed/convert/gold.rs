@@ -1,23 +1,30 @@
-use crate::core::traits::{Convert, ImageView, Pixel, Resize, TryConvert, TryConvertSlice};
+use crate::core::traits::{ImageView, Pixel, Resize, TryConvert, TryConvertSlice};
 use crate::packed::image::{GenericBuffer, GenericFlatBuffer, GenericView};
 use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
-macro_rules! impl_Convert {
+macro_rules! impl_TryConvert {
     () => {
-        fn convert(&self, output: &mut GenericBuffer<DP>) {
+        type Error = ();
+
+        fn try_convert(&self, output: &mut GenericBuffer<DP>) -> Result<(), Self::Error> {
             output.resize(self.width(), self.height());
 
             // iterate over the source pixels and convert them
             for i in 0..self.height() {
                 let row_in = self.pixel_row(i).unwrap();
                 let row_out = output.pixel_row_mut(i).unwrap();
-                row_in.try_convert(row_out).unwrap();
+                let res = row_in.try_convert(row_out);
+                if res.is_err() {
+                    return Err(())
+                }
             }
+
+            Ok(())
         }
     };
 }
 
-macro_rules! impl_TryConvert {
+macro_rules! impl_TryConvertFlat {
     () => {
         type Error = ();
 
@@ -30,7 +37,10 @@ macro_rules! impl_TryConvert {
             for i in 0..self.height() {
                 let row_in = self.pixel_row(i).unwrap();
                 let row_out = output.pixel_row_mut(i).unwrap();
-                row_in.try_convert(row_out).unwrap();
+                let res = row_in.try_convert(row_out);
+                if res.is_err() {
+                    return Err(())
+                }
             }
 
             Ok(())
@@ -38,31 +48,31 @@ macro_rules! impl_TryConvert {
     };
 }
 
-impl<'a, SP, DP> Convert<GenericBuffer<DP>> for GenericView<'a, SP>
+impl<'a, SP, DP> TryConvert<GenericBuffer<DP>> for GenericView<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
     [SP]: TryConvertSlice<DP>,
 {
-    impl_Convert!();
+    impl_TryConvert!();
 }
 
-impl<'a, SP, DP> Convert<GenericBuffer<DP>> for GenericFlatBuffer<'a, SP>
+impl<'a, SP, DP> TryConvert<GenericBuffer<DP>> for GenericFlatBuffer<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
     [SP]: TryConvertSlice<DP>,
 {
-    impl_Convert!();
+    impl_TryConvert!();
 }
 
-impl<SP, DP> Convert<GenericBuffer<DP>> for GenericBuffer<SP>
+impl<SP, DP> TryConvert<GenericBuffer<DP>> for GenericBuffer<SP>
 where
     SP: Pixel,
     DP: Pixel,
     [SP]: TryConvertSlice<DP>,
 {
-    impl_Convert!();
+    impl_TryConvert!();
 }
 
 impl<'a, SP, DP> TryConvert<GenericFlatBuffer<'a, DP>> for GenericView<'a, SP>
@@ -71,7 +81,7 @@ where
     DP: Pixel,
     [SP]: TryConvertSlice<DP>,
 {
-    impl_TryConvert!();
+    impl_TryConvertFlat!();
 }
 
 impl<'a, SP, DP> TryConvert<GenericFlatBuffer<'a, DP>> for GenericFlatBuffer<'a, SP>
@@ -80,7 +90,7 @@ where
     DP: Pixel,
     [SP]: TryConvertSlice<DP>,
 {
-    impl_TryConvert!();
+    impl_TryConvertFlat!();
 }
 
 impl<'a, SP, DP> TryConvert<GenericFlatBuffer<'a, DP>> for GenericBuffer<SP>
@@ -89,5 +99,5 @@ where
     DP: Pixel,
     [SP]: TryConvertSlice<DP>,
 {
-    impl_TryConvert!();
+    impl_TryConvertFlat!();
 }
