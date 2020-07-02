@@ -6,6 +6,10 @@
 
 
 
+#### 0.4 (released)
+> * DynamicImageView and DynamicImageBuffer are now truly dynamic (no more type parameter)!
+> * Macropixel support
+
 #### 0.3 (released)
 > * New DynamicImageBuffer type
 > * DynamicImageView no longer stores a format hint
