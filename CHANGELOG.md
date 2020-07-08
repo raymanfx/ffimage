@@ -6,6 +6,9 @@
 
 
 
+#### 0.5 (released)
+> * Dynamic image API rework
+
 #### 0.4 (released)
 > * DynamicImageView and DynamicImageBuffer are now truly dynamic (no more type parameter)!
 > * Macropixel support
