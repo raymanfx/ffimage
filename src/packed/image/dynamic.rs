@@ -31,7 +31,7 @@ impl<'a> MemoryView<'a> {
     /// use ffimage::packed::DynamicImageView;
     ///
     /// let mem = vec![0; 12];
-    /// let view = DynamicImageView::new(&mem, 2, 2, 3)
+    /// let view = DynamicImageView::new(&mem, 2, 2)
     ///     .expect("Memory region too small");
     ///
     /// let slice: &[u8] = view.raw.as_slice()
@@ -153,7 +153,6 @@ impl<'a> DynamicView<'a> {
     /// * `raw` - Raw memory region to interpret as typed image
     /// * `width` - Width in pixels
     /// * `height` - Height in pixels
-    /// * `channels` - Number of channels
     ///
     /// # Example
     ///
@@ -161,17 +160,16 @@ impl<'a> DynamicView<'a> {
     /// use ffimage::packed::DynamicImageView;
     ///
     /// let mem = vec![0; 12];
-    /// let view = DynamicImageView::new(&mem, 2, 2, 3)
-    ///     .expect("Memory region too small");
+    /// let view = DynamicImageView::new(&mem, 2, 2);
     /// ```
-    pub fn new(raw: &'a [u8], width: u32, height: u32, channels: u32) -> Option<Self> {
+    pub fn new(raw: &'a [u8], width: u32, height: u32) -> Option<Self> {
         // require the same amount of elements per row
         if raw.len() % height as usize != 0 {
             return None;
         }
 
         // validate bytes per line
-        let min_stride = width as usize * channels as usize;
+        let min_stride = width as usize;
         let stride = raw.len() / height as usize;
         if stride < min_stride {
             return None;

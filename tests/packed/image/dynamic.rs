@@ -4,14 +4,14 @@ mod view {
     #[test]
     fn new() {
         let mem = vec![0; 27];
-        let view = DynamicImageView::new(&mem, 3, 3, 3 /* channels */).unwrap();
+        let view = DynamicImageView::new(&mem, 3, 3).unwrap();
         assert_eq!(view.raw.len(), 3 * 3 * 3);
         assert_eq!(view.width, 3);
         assert_eq!(view.height, 3);
         assert_eq!(view.stride, 3 * 3);
 
         let mem = vec![0; 30];
-        let view = DynamicImageView::new(&mem, 3, 3, 3 /* channels */).unwrap();
+        let view = DynamicImageView::new(&mem, 3, 3).unwrap();
         assert_eq!(view.raw.len(), 3 * 3 * 3 + 3);
         assert_eq!(view.width, 3);
         assert_eq!(view.height, 3);
