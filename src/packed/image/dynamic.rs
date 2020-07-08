@@ -38,7 +38,7 @@ impl<'a> MemoryView<'a> {
     ///     .expect("Failed to cast memory view");
     /// ```
     pub fn as_slice<T: 'static>(&self) -> Option<&[T]> {
-        match &self {
+        match self {
             MemoryView::U8(view) => {
                 if TypeId::of::<T>() == TypeId::of::<u8>() {
                     let mem: &[u8] = view;
@@ -99,7 +99,7 @@ impl MemoryBuffer {
     ///     .expect("Failed to cast memory buffer");
     /// ```
     pub fn as_slice<T: 'static>(&self) -> Option<&[T]> {
-        match &self {
+        match self {
             MemoryBuffer::U8(buf) => {
                 if TypeId::of::<T>() == TypeId::of::<u8>() {
                     let mem: &[u8] = &buf[..];
@@ -112,6 +112,43 @@ impl MemoryBuffer {
                 if TypeId::of::<T>() == TypeId::of::<u16>() {
                     let mem: &[u16] = &buf[..];
                     unsafe { Some(&*(mem as *const [u16] as *const [T])) }
+                } else {
+                    None
+                }
+            }
+        }
+    }
+
+    /// Returns the mutable slice representation of a memory buffer
+    ///
+    /// It is ensured that only the proper type representation can be cast from the underlying
+    /// buffer. If, for example, you were to call the method on a U16 buffer and try to get a [u8]
+    /// slice reference, the function would return None instead.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ffimage::packed::{DynamicImageBuffer, DynamicStorageType};
+    ///
+    /// let mut buf = DynamicImageBuffer::new(2, 2, 3, DynamicStorageType::U8);
+    ///
+    /// let slice: &[u8] = buf.raw.as_mut_slice()
+    ///     .expect("Failed to cast memory buffer");
+    /// ```
+    pub fn as_mut_slice<T: 'static>(&mut self) -> Option<&mut [T]> {
+        match self {
+            MemoryBuffer::U8(buf) => {
+                if TypeId::of::<T>() == TypeId::of::<u8>() {
+                    let mem: &mut [u8] = &mut buf[..];
+                    unsafe { Some(&mut *(mem as *mut [u8] as *mut [T])) }
+                } else {
+                    None
+                }
+            }
+            MemoryBuffer::U16(buf) => {
+                if TypeId::of::<T>() == TypeId::of::<u16>() {
+                    let mem: &mut [u16] = &mut buf[..];
+                    unsafe { Some(&mut *(mem as *mut [u16] as *mut [T])) }
                 } else {
                     None
                 }
