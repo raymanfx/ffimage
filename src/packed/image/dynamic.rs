@@ -34,7 +34,7 @@ impl<'a> MemoryView<'a> {
     /// let view = DynamicImageView::new(&mem, 2, 2)
     ///     .expect("Memory region too small");
     ///
-    /// let slice: &[u8] = view.raw.as_slice()
+    /// let slice: &[u8] = view.raw().as_slice()
     ///     .expect("Failed to cast memory view");
     /// ```
     pub fn as_slice<T: 'static>(&self) -> Option<&[T]> {
@@ -95,7 +95,7 @@ impl MemoryBuffer {
     ///
     /// let buf = DynamicImageBuffer::new(2, 2, 3, DynamicStorageType::U8);
     ///
-    /// let slice: &[u8] = buf.raw.as_slice()
+    /// let slice: &[u8] = buf.raw().as_slice()
     ///     .expect("Failed to cast memory buffer");
     /// ```
     pub fn as_slice<T: 'static>(&self) -> Option<&[T]> {
@@ -132,7 +132,7 @@ impl MemoryBuffer {
     ///
     /// let mut buf = DynamicImageBuffer::new(2, 2, 3, DynamicStorageType::U8);
     ///
-    /// let slice: &[u8] = buf.raw.as_mut_slice()
+    /// let slice: &[u8] = buf.raw_mut().as_mut_slice()
     ///     .expect("Failed to cast memory buffer");
     /// ```
     pub fn as_mut_slice<T: 'static>(&mut self) -> Option<&mut [T]> {
@@ -175,11 +175,10 @@ impl MemoryBuffer {
 
 /// Image view parametrized by its pixel type
 pub struct DynamicView<'a> {
-    pub raw: MemoryView<'a>,
-    pub width: u32,
-    pub height: u32,
-    pub stride: usize,
-    pub typ: StorageType,
+    raw: MemoryView<'a>,
+    width: u32,
+    height: u32,
+    stride: usize,
 }
 
 impl<'a> DynamicView<'a> {
@@ -217,7 +216,6 @@ impl<'a> DynamicView<'a> {
             width,
             height,
             stride,
-            typ: StorageType::U8,
         })
     }
 
@@ -251,18 +249,36 @@ impl<'a> DynamicView<'a> {
             width,
             height,
             stride,
-            typ: StorageType::U8,
         })
+    }
+
+    /// Returns the raw memory
+    pub fn raw(&self) -> &MemoryView {
+        &self.raw
+    }
+
+    /// Returns the width in pixels
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    /// Returns the height in pixels
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+
+    /// Returns the length of one image row in bytes
+    pub fn stride(&self) -> usize {
+        self.stride
     }
 }
 
 /// Image buffer parametrized by its pixel type
 pub struct DynamicBuffer {
-    pub raw: MemoryBuffer,
-    pub width: u32,
-    pub height: u32,
-    pub stride: usize,
-    pub typ: StorageType,
+    raw: MemoryBuffer,
+    width: u32,
+    height: u32,
+    stride: usize,
 }
 
 impl DynamicBuffer {
@@ -295,7 +311,6 @@ impl DynamicBuffer {
             width: 0,
             height: 0,
             stride: 0,
-            typ,
         }
     }
 
@@ -337,7 +352,6 @@ impl DynamicBuffer {
             width,
             height,
             stride,
-            typ,
         }
     }
 
@@ -366,19 +380,47 @@ impl DynamicBuffer {
             width,
             height,
             stride,
-            typ: StorageType::U8,
         }
+    }
+
+    /// Returns the raw memory
+    pub fn raw(&self) -> &MemoryBuffer {
+        &self.raw
+    }
+
+    /// Returns the raw memory
+    pub fn raw_mut(&mut self) -> &mut MemoryBuffer {
+        &mut self.raw
+    }
+
+    /// Returns the width in pixels
+    pub fn width(&self) -> u32 {
+        self.width
+    }
+
+    /// Returns the height in pixels
+    pub fn height(&self) -> u32 {
+        self.height
+    }
+
+    /// Returns the length of one image row in bytes
+    pub fn stride(&self) -> usize {
+        self.stride
     }
 
     pub fn resize(&mut self, width: u32, height: u32, channels: u32) {
         self.width = width;
         self.height = height;
-        self.stride = width as usize * channels as usize * self.typ as usize;
 
-        let elems = (height * width * channels) as usize * self.typ as usize;
         match &mut self.raw {
-            MemoryBuffer::U8(buf) => buf.resize(elems, 0),
-            MemoryBuffer::U16(buf) => buf.resize(elems, 0),
+            MemoryBuffer::U8(buf) => {
+                self.stride = width as usize * channels as usize;
+                buf.resize(self.height as usize * self.stride, 0);
+            }
+            MemoryBuffer::U16(buf) => {
+                self.stride = width as usize * channels as usize * 2 /* u16 */;
+                buf.resize(self.height as usize * self.stride, 0);
+            }
         }
     }
 }
