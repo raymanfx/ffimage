@@ -1,5 +1,6 @@
 use std::any::TypeId;
 use std::convert::TryFrom;
+use std::mem;
 
 use crate::core::traits::Pixel;
 use crate::packed::image::generic::GenericView;
@@ -19,6 +20,32 @@ pub enum MemoryView<'a> {
 }
 
 impl<'a> MemoryView<'a> {
+    /// Returns a memory view
+    ///
+    /// It is ensured that only the proper type representation can be cast from the underlying
+    /// view. If, for example, you were to call the method on a U16 view and try to get a [u8]
+    /// slice reference, the function would return None instead.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ffimage::packed::image::dynamic::MemoryView;
+    ///
+    /// let mem: Vec<u8> = Vec::new();
+    /// let view = MemoryView::new(&mem).unwrap();
+    /// ```
+    pub fn new<T: 'static>(raw: &[T]) -> Option<Self> {
+        if TypeId::of::<T>() == TypeId::of::<u8>() {
+            let mem = unsafe { &*(raw as *const [T] as *const [u8]) };
+            Some(MemoryView::U8(mem))
+        } else if TypeId::of::<T>() == TypeId::of::<u16>() {
+            let mem = unsafe { &*(raw as *const [T] as *const [u16]) };
+            Some(MemoryView::U16(mem))
+        } else {
+            None
+        }
+    }
+
     /// Returns the slice representation of a memory view
     ///
     /// It is ensured that only the proper type representation can be cast from the underlying
@@ -30,7 +57,7 @@ impl<'a> MemoryView<'a> {
     /// ```
     /// use ffimage::packed::DynamicImageView;
     ///
-    /// let mem = vec![0; 12];
+    /// let mem: Vec<u8> = vec![0; 12];
     /// let view = DynamicImageView::new(&mem, 2, 2)
     ///     .expect("Memory region too small");
     ///
@@ -198,25 +225,29 @@ impl<'a> DynamicView<'a> {
     /// let mem = vec![0; 12];
     /// let view = DynamicImageView::new(&mem, 2, 2);
     /// ```
-    pub fn new(raw: &'a [u8], width: u32, height: u32) -> Option<Self> {
+    pub fn new<T: 'static>(raw: &'a [T], width: u32, height: u32) -> Option<Self> {
         // require the same amount of elements per row
         if raw.len() % height as usize != 0 {
             return None;
         }
 
         // validate bytes per line
-        let min_stride = width as usize;
+        let min_stride = width as usize * mem::size_of::<T>();
         let stride = raw.len() / height as usize;
         if stride < min_stride {
             return None;
         }
 
-        Some(DynamicView {
-            raw: MemoryView::U8(raw),
-            width,
-            height,
-            stride,
-        })
+        let mem = MemoryView::new(raw);
+        match mem {
+            Some(raw) => Some(DynamicView {
+                raw,
+                width,
+                height,
+                stride,
+            }),
+            _ => None,
+        }
     }
 
     /// Returns an image view with unknown pixel type
@@ -420,6 +451,19 @@ impl DynamicBuffer {
             MemoryBuffer::U16(buf) => {
                 self.stride = width as usize * channels as usize * 2 /* u16 */;
                 buf.resize(self.height as usize * self.stride, 0);
+            }
+        }
+    }
+
+    pub fn as_view(&self) -> DynamicView {
+        match &self.raw {
+            MemoryBuffer::U8(data) => {
+                let view = DynamicView::new(data, self.width, self.height);
+                view.unwrap()
+            }
+            MemoryBuffer::U16(data) => {
+                let view = DynamicView::new(data.as_slice(), self.width, self.height);
+                view.unwrap()
             }
         }
     }

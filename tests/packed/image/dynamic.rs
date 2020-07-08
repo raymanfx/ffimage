@@ -3,14 +3,14 @@ mod view {
 
     #[test]
     fn new() {
-        let mem = vec![0; 27];
+        let mem: Vec<u8> = vec![0; 27];
         let view = DynamicImageView::new(&mem, 3, 3).unwrap();
         assert_eq!(view.raw().len(), 3 * 3 * 3);
         assert_eq!(view.width(), 3);
         assert_eq!(view.height(), 3);
         assert_eq!(view.stride(), 3 * 3);
 
-        let mem = vec![0; 30];
+        let mem: Vec<u16> = vec![0; 30];
         let view = DynamicImageView::new(&mem, 3, 3).unwrap();
         assert_eq!(view.raw().len(), 3 * 3 * 3 + 3);
         assert_eq!(view.width(), 3);
@@ -20,7 +20,7 @@ mod view {
 
     #[test]
     fn with_stride() {
-        let mem = vec![0; 30];
+        let mem: Vec<u8> = vec![0; 30];
         let view = DynamicImageView::with_stride(&mem, 3, 3, 3 * 3 + 1 /* stride */).unwrap();
         assert_eq!(view.raw().len(), 3 * 3 * 3 + 3);
         assert_eq!(view.width(), 3);
