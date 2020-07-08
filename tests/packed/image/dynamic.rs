@@ -53,10 +53,11 @@ mod buffer {
 
     #[test]
     fn resize() {
-        let mut buf = DynamicImageBuffer::new(0, 0, 3 /* channels */, DynamicStorageType::U8);
+        let mut buf = DynamicImageBuffer::empty(DynamicStorageType::U8);
         buf.resize(3, 3, 3);
         assert_eq!(buf.width, 3);
         assert_eq!(buf.height, 3);
         assert_eq!(buf.stride, 3 * 3);
+        assert_eq!(buf.raw.len(), 3 * 3 * 3);
     }
 }

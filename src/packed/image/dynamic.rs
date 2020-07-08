@@ -229,7 +229,40 @@ pub struct DynamicBuffer {
 }
 
 impl DynamicBuffer {
-    /// Returns an image view with unknown pixel type
+    /// Returns an empty image buffer
+    ///
+    /// # Arguments
+    ///
+    /// * `typ` - Storage type
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ffimage::packed::{DynamicImageBuffer, DynamicStorageType};
+    ///
+    /// let buf = DynamicImageBuffer::empty(DynamicStorageType::U8);
+    /// ```
+    pub fn empty(typ: StorageType) -> Self {
+        let raw: MemoryBuffer;
+        match typ {
+            StorageType::U8 => {
+                raw = MemoryBuffer::U8(Vec::new());
+            }
+            StorageType::U16 => {
+                raw = MemoryBuffer::U16(Vec::new());
+            }
+        }
+
+        DynamicBuffer {
+            raw,
+            width: 0,
+            height: 0,
+            stride: 0,
+            typ,
+        }
+    }
+
+    /// Returns an image buffer with unknown pixel type
     ///
     /// # Arguments
     ///
@@ -271,7 +304,7 @@ impl DynamicBuffer {
         }
     }
 
-    /// Returns an image view with unknown pixel type
+    /// Returns an image buffer with unknown pixel type
     ///
     /// # Arguments
     ///
