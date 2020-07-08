@@ -109,6 +109,32 @@ pub enum MemoryBuffer {
 }
 
 impl MemoryBuffer {
+    /// Returns a memory buffer
+    ///
+    /// It is ensured that only the proper type representation can be cast from the underlying
+    /// view. If, for example, you were to call the method on a U16 view and try to get a [u8]
+    /// slice reference, the function would return None instead.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ffimage::packed::image::dynamic::MemoryBuffer;
+    ///
+    /// let mem: Vec<u8> = Vec::new();
+    /// let buf = MemoryBuffer::new(&mem).unwrap();
+    /// ```
+    pub fn new<T: 'static>(raw: &[T]) -> Option<Self> {
+        if TypeId::of::<T>() == TypeId::of::<u8>() {
+            let mem = unsafe { &*(raw as *const [T] as *const [u8]) };
+            Some(MemoryBuffer::U8(mem.to_vec()))
+        } else if TypeId::of::<T>() == TypeId::of::<u16>() {
+            let mem = unsafe { &*(raw as *const [T] as *const [u16]) };
+            Some(MemoryBuffer::U16(mem.to_vec()))
+        } else {
+            None
+        }
+    }
+
     /// Returns the slice representation of a memory buffer
     ///
     /// It is ensured that only the proper type representation can be cast from the underlying
@@ -392,7 +418,6 @@ impl DynamicBuffer {
     ///
     /// * `width` - Width in pixels
     /// * `height` - Height in pixels
-    /// * `channels` - Number of channels
     /// * `typ` - Storage type
     /// * `raw` - Raw memory region to interpret as typed image
     ///
@@ -401,16 +426,31 @@ impl DynamicBuffer {
     /// ```
     /// use ffimage::packed::DynamicImageBuffer;
     ///
-    /// let mem = vec![0; 12];
-    /// let buf = DynamicImageBuffer::with_raw(2, 2, 3, &mem);
+    /// let mem: Vec<u8> = vec![0; 12];
+    /// let buf = DynamicImageBuffer::with_raw(2, 2, &mem);
     /// ```
-    pub fn with_raw(width: u32, height: u32, channels: u32, raw: &[u8]) -> Self {
-        let stride = width as usize * channels as usize;
-        DynamicBuffer {
-            raw: MemoryBuffer::U8(raw.to_vec()),
-            width,
-            height,
-            stride,
+    pub fn with_raw<T: 'static>(width: u32, height: u32, raw: &[T]) -> Option<Self> {
+        // require the same amount of elements per row
+        if raw.len() % height as usize != 0 {
+            return None;
+        }
+
+        // validate bytes per line
+        let min_stride = width as usize * mem::size_of::<T>();
+        let stride = raw.len() / height as usize;
+        if stride < min_stride {
+            return None;
+        }
+
+        let mem = MemoryBuffer::new(raw);
+        match mem {
+            Some(raw) => Some(DynamicBuffer {
+                raw,
+                width,
+                height,
+                stride,
+            }),
+            _ => None,
         }
     }
 
