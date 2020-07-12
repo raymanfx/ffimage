@@ -119,7 +119,7 @@ macro_rules! impl_AccessPixel {
                 "invalid number of row items"
             );
 
-            Some(&body)
+            Some(body)
         }
 
         fn pixel(&self, x: u32, y: u32) -> Option<&Self::PixelType> {
@@ -156,7 +156,7 @@ macro_rules! impl_AccessPixelMut {
                 "invalid number of row items"
             );
 
-            Some(&mut body[..])
+            Some(body)
         }
 
         fn pixel_mut(&mut self, x: u32, y: u32) -> Option<&mut Self::PixelType> {
