@@ -66,17 +66,6 @@ pub trait ImageBuffer: ImageView {
     fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), ()>;
 }
 
-/// Cloneable images
-pub trait CloneImage {
-    type Output: ImageBuffer;
-
-    /// Clone an image into an already existing buffer, avoiding reallocations if possible
-    fn clone_into(&self, output: &mut Self::Output);
-
-    /// Clone an image type (view or buffer) and return a buffer
-    fn clone(&self) -> Self::Output;
-}
-
 /// Convert between images
 pub trait TryConvert<B> {
     type Error: fmt::Debug;

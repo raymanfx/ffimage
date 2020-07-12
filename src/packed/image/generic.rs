@@ -3,7 +3,7 @@ use std::mem;
 use num_traits::identities::Zero;
 
 use crate::core::iter::{PixelIter, PixelIterMut};
-use crate::core::traits::{CloneImage, ImageBuffer, ImageView, Pixel};
+use crate::core::traits::{ImageBuffer, ImageView, Pixel};
 use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
 macro_rules! impl_ImageView {
@@ -56,28 +56,6 @@ macro_rules! impl_ImageBuffer {
             }
 
             Ok(())
-        }
-    };
-}
-
-macro_rules! impl_CloneImage {
-    ($id:ident) => {
-        type Output = GenericBuffer<T>;
-
-        fn clone_into(&self, output: &mut Self::Output) {
-            *output = Self::Output::new(self.width(), self.height());
-            // copy data without padding
-            for i in (0..self.height) {
-                let src = self.pixel_row(i).unwrap();
-                let dst = output.pixel_row_mut(i).unwrap();
-                dst.copy_from_slice(src);
-            }
-        }
-
-        fn clone(&self) -> Self::Output {
-            let mut output = Self::Output::new(self.width, self.height);
-            self.clone_into(&mut output);
-            output
         }
     };
 }
@@ -268,10 +246,6 @@ impl<'a, T: Pixel> ImageView for GenericView<'a, T> {
     impl_ImageView!(GenericView);
 }
 
-impl<'a, T: Pixel> CloneImage for GenericView<'a, T> {
-    impl_CloneImage!(GenericView);
-}
-
 impl<'a, T: Pixel> AccessPixel for GenericView<'a, T> {
     impl_AccessPixel!(GenericView);
 }
@@ -359,10 +333,6 @@ impl<'a, T: Pixel> ImageView for GenericFlatBuffer<'a, T> {
 
 impl<'a, T: Pixel> ImageBuffer for GenericFlatBuffer<'a, T> {
     impl_ImageBuffer!(GenericFlatBuffer);
-}
-
-impl<'a, T: Pixel> CloneImage for GenericFlatBuffer<'a, T> {
-    impl_CloneImage!(GenericFlatBuffer);
 }
 
 impl<'a, T: Pixel> AccessPixel for GenericFlatBuffer<'a, T> {
@@ -503,10 +473,6 @@ impl<T: Pixel> ImageBuffer for GenericBuffer<T> {
     impl_ImageBuffer!(GenericBuffer);
 }
 
-impl<T: Pixel> CloneImage for GenericBuffer<T> {
-    impl_CloneImage!(GenericBuffer);
-}
-
 impl<T: Pixel> AccessPixel for GenericBuffer<T> {
     impl_AccessPixel!(GenericBuffer);
 }
@@ -538,5 +504,19 @@ impl<'a, T: Pixel> IntoIterator for &'a mut GenericBuffer<T> {
 
     fn into_iter(self) -> Self::IntoIter {
         PixelIterMut::new(self)
+    }
+}
+
+impl<'a, T: Pixel> From<&GenericView<'a, T>> for GenericBuffer<T> {
+    fn from(view: &GenericView<'a, T>) -> Self {
+        // unwrap() is safe here because the view itself was checked when it was created
+        GenericBuffer::with_raw(view.width(), view.height(), view.raw()).unwrap()
+    }
+}
+
+impl<'a, T: Pixel> From<&GenericFlatBuffer<'a, T>> for GenericBuffer<T> {
+    fn from(view: &GenericFlatBuffer<'a, T>) -> Self {
+        // unwrap() is safe here because the view itself was checked when it was created
+        GenericBuffer::with_raw(view.width(), view.height(), view.raw()).unwrap()
     }
 }

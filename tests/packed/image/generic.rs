@@ -26,41 +26,6 @@ macro_rules! test_ImageView {
         }
 
         #[test]
-        fn clone_into() {
-            let mut mem = vec![0; 27];
-            mem[18] = 10;
-            mem[19] = 20;
-            mem[20] = 30;
-            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            let mut buffer = GenericImageBuffer::<Rgb<u8>>::new(0, 0);
-            view.clone_into(&mut buffer);
-            assert_eq!(buffer.width(), view.width());
-            assert_eq!(buffer.height(), view.height());
-            assert_eq!(buffer.stride(), (buffer.width() * 3) as usize);
-            let pix = buffer.get_pixel(0, 2).unwrap();
-            assert_eq!(pix[0], 10);
-            assert_eq!(pix[1], 20);
-            assert_eq!(pix[2], 30);
-        }
-
-        #[test]
-        fn clone() {
-            let mut mem = vec![0; 27];
-            mem[18] = 10;
-            mem[19] = 20;
-            mem[20] = 30;
-            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            let buffer = view.clone();
-            assert_eq!(buffer.width(), view.width());
-            assert_eq!(buffer.height(), view.height());
-            assert_eq!(buffer.stride(), (buffer.width() * 3) as usize);
-            let pix = buffer.get_pixel(0, 2).unwrap();
-            assert_eq!(pix[0], 10);
-            assert_eq!(pix[1], 20);
-            assert_eq!(pix[2], 30);
-        }
-
-        #[test]
         fn get_pixel() {
             let mut mem = vec![0; 27];
             mem[18] = 10;
@@ -212,27 +177,42 @@ macro_rules! test_ImageBuffer {
 
 mod view {
     use ffimage::color::*;
-    use ffimage::core::{CloneImage, ImageView};
-    use ffimage::packed::{AccessPixel, GenericImageBuffer, GenericImageView};
+    use ffimage::core::ImageView;
+    use ffimage::packed::{AccessPixel, GenericImageView};
 
     test_ImageView!(GenericImageView);
 }
 
 mod flatbuffer {
     use ffimage::color::*;
-    use ffimage::core::{CloneImage, ImageBuffer, ImageView};
-    use ffimage::packed::{
-        AccessPixel, AccessPixelMut, GenericImageBuffer, GenericImageFlatBuffer,
-    };
+    use ffimage::core::{ImageBuffer, ImageView};
+    use ffimage::packed::{AccessPixel, AccessPixelMut, GenericImageFlatBuffer};
 
     test_ImageView!(GenericImageFlatBuffer);
     test_ImageBuffer!(GenericImageFlatBuffer);
 }
 
 mod buffer {
-    //use ffimage::color::*;
-    //use ffimage::core::ImageView;
-    //use ffimage::packed::GenericImageBuffer;
+    use ffimage::color::*;
+    use ffimage::core::ImageView;
+    use ffimage::packed::{GenericImageBuffer, GenericImageView};
+
+    #[test]
+    fn from() {
+        let mut mem = vec![0; 27];
+        mem[18] = 10;
+        mem[19] = 20;
+        mem[20] = 30;
+        let view = GenericImageView::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
+        let buffer = GenericImageBuffer::<Rgb<u8>>::from(&view);
+        assert_eq!(buffer.width(), view.width());
+        assert_eq!(buffer.height(), view.height());
+        assert_eq!(buffer.stride(), (buffer.width() * 3) as usize);
+        let pix = buffer.get_pixel(0, 2).unwrap();
+        assert_eq!(pix[0], 10);
+        assert_eq!(pix[1], 20);
+        assert_eq!(pix[2], 30);
+    }
 
     //test_ImageView!(GenericImageBuffer);
     //test_ImageBuffer!(GenericImageBuffer);

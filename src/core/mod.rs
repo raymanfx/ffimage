@@ -1,5 +1,5 @@
 pub mod traits;
-pub use traits::{CloneImage, ImageBuffer, ImageView, TryConvert, TryConvertSlice};
+pub use traits::{ImageBuffer, ImageView, TryConvert, TryConvertSlice};
 pub use traits::{Macropixel, Pixel, StorageType};
 
 pub mod pixel;
