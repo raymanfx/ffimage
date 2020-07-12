@@ -77,12 +77,6 @@ pub trait CloneImage {
     fn clone(&self) -> Self::Output;
 }
 
-/// Resizable images
-pub trait Resize {
-    /// Resize the underlying container to at least fit the number of pixels required
-    fn resize(&mut self, width: u32, height: u32);
-}
-
 /// Convert between images
 pub trait TryConvert<B> {
     type Error: fmt::Debug;

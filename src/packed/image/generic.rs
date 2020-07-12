@@ -3,7 +3,7 @@ use std::mem;
 use num_traits::identities::Zero;
 
 use crate::core::iter::{PixelIter, PixelIterMut};
-use crate::core::traits::{CloneImage, ImageBuffer, ImageView, Pixel, Resize};
+use crate::core::traits::{CloneImage, ImageBuffer, ImageView, Pixel};
 use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
 macro_rules! impl_ImageView {
@@ -65,7 +65,7 @@ macro_rules! impl_CloneImage {
         type Output = GenericBuffer<T>;
 
         fn clone_into(&self, output: &mut Self::Output) {
-            output.resize(self.width, self.height);
+            *output = Self::Output::new(self.width(), self.height());
             // copy data without padding
             for i in (0..self.height) {
                 let src = self.pixel_row(i).unwrap();
@@ -78,21 +78,6 @@ macro_rules! impl_CloneImage {
             let mut output = Self::Output::new(self.width, self.height);
             self.clone_into(&mut output);
             output
-        }
-    };
-}
-
-macro_rules! impl_Resize {
-    ($id:ident) => {
-        fn resize(&mut self, width: u32, height: u32) {
-            let pixels_per_row = width / T::subpixels() as u32;
-            self.width = width;
-            self.height = height;
-            self.stride = pixels_per_row as usize * T::channels() as usize * mem::size_of::<T::T>();
-            self.raw.resize(
-                (height * pixels_per_row * T::channels() as u32) as usize,
-                T::T::zero(),
-            );
         }
     };
 }
@@ -520,10 +505,6 @@ impl<T: Pixel> ImageBuffer for GenericBuffer<T> {
 
 impl<T: Pixel> CloneImage for GenericBuffer<T> {
     impl_CloneImage!(GenericBuffer);
-}
-
-impl<T: Pixel> Resize for GenericBuffer<T> {
-    impl_Resize!(GenericBuffer);
 }
 
 impl<T: Pixel> AccessPixel for GenericBuffer<T> {

@@ -230,21 +230,10 @@ mod flatbuffer {
 }
 
 mod buffer {
-    use ffimage::color::*;
-    use ffimage::core::{ImageView, Resize};
-    use ffimage::packed::GenericImageBuffer;
+    //use ffimage::color::*;
+    //use ffimage::core::ImageView;
+    //use ffimage::packed::GenericImageBuffer;
 
     //test_ImageView!(GenericImageBuffer);
     //test_ImageBuffer!(GenericImageBuffer);
-
-    #[test]
-    fn resize() {
-        let mut buf = GenericImageBuffer::<Rgb<u8>>::new(0, 0);
-        assert_eq!(buf.width(), 0);
-        assert_eq!(buf.height(), 0);
-        buf.resize(3, 3);
-        assert_eq!(buf.width(), 3);
-        assert_eq!(buf.height(), 3);
-        assert_eq!(buf.stride(), 3 * 3);
-    }
 }

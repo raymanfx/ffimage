@@ -2,7 +2,7 @@ use std::cell::UnsafeCell;
 
 use rayon::prelude::*;
 
-use crate::core::traits::{ImageView, Pixel, Resize, TryConvert, TryConvertSlice};
+use crate::core::traits::{ImageView, Pixel, TryConvert, TryConvertSlice};
 use crate::packed::image::{GenericBuffer, GenericFlatBuffer, GenericView};
 use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
@@ -34,7 +34,9 @@ macro_rules! impl_TryConvert {
         type Error = ();
 
         fn try_convert(&self, output: &mut GenericBuffer<DP>) -> Result<(), Self::Error> {
-            output.resize(self.width(), self.height());
+            if output.width() < self.width() || output.height() < self.height() {
+                *output = GenericBuffer::new(self.width(), self.height());
+            }
 
             // It is safe to use the shared, lock free wrapper here because each thread
             // accesses a distinct pixel row, so pixel access is never interleaved.
