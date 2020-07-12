@@ -1,5 +1,7 @@
 use std::mem;
 
+use num_traits::identities::Zero;
+
 use crate::core::iter::{PixelIter, PixelIterMut};
 use crate::core::traits::{CloneImage, ImageBuffer, ImageView, Pixel, Resize};
 use crate::packed::traits::{AccessPixel, AccessPixelMut};
@@ -89,7 +91,7 @@ macro_rules! impl_Resize {
             self.stride = pixels_per_row as usize * T::channels() as usize * mem::size_of::<T::T>();
             self.raw.resize(
                 (height * pixels_per_row * T::channels() as u32) as usize,
-                T::T::default(),
+                T::T::zero(),
             );
         }
     };
@@ -447,7 +449,7 @@ impl<T: Pixel> GenericBuffer<T> {
         let stride = pixels_per_row as usize * T::channels() as usize * mem::size_of::<T::T>();
 
         GenericBuffer {
-            raw: vec![T::T::default(); height as usize * pixels_per_row as usize * T::len()],
+            raw: vec![T::T::zero(); height as usize * pixels_per_row as usize * T::len()],
             width,
             height,
             stride,

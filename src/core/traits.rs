@@ -1,18 +1,14 @@
 use std::{array, fmt, mem, ops::IndexMut};
 
+use num_traits::Num;
+
 /// Pixel backing type
-pub trait StorageType: Default + Copy + Send + Sync {}
+pub trait StorageType: Num + Copy + Send + Sync {}
 
-impl StorageType for u8 {}
-impl StorageType for u16 {}
-impl StorageType for u32 {}
-impl StorageType for u64 {}
-
-impl StorageType for f32 {}
-impl StorageType for f64 {}
+impl<T: Num + Copy + Send + Sync> StorageType for T {}
 
 /// Generic pixel container
-pub trait Pixel: Sized + Default + Copy + Send + Sync + IndexMut<usize> {
+pub trait Pixel: Sized + Copy + Send + Sync + IndexMut<usize> {
     /// Type of the container elements
     type T: StorageType;
 

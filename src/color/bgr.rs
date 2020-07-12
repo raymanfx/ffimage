@@ -25,7 +25,7 @@ macro_rules! impl_from_pix_to_pix4 {
         impl<I: StorageType + AsPrimitive<O>, O: StorageType + 'static> From<$src<I>> for $dst<O> {
             fn from(pix: $src<I>) -> Self {
                 $dst {
-                    0: [pix[$_0].as_(), pix[$_1].as_(), pix[$_2].as_(), O::default()],
+                    0: [pix[$_0].as_(), pix[$_1].as_(), pix[$_2].as_(), O::zero()],
                 }
             }
         }
