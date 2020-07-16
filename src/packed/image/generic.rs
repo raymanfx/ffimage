@@ -84,16 +84,6 @@ macro_rules! impl_AccessPixel {
 
             Some(body)
         }
-
-        fn pixel(&self, x: u32, y: u32) -> Option<&Self::PixelType> {
-            if x >= self.width() || y >= self.height() {
-                return None;
-            }
-
-            let row = self.pixel_row(y)?;
-            let x = x / T::subpixels() as u32;
-            Some(&row[x as usize])
-        }
     };
 }
 
@@ -120,16 +110,6 @@ macro_rules! impl_AccessPixelMut {
             );
 
             Some(body)
-        }
-
-        fn pixel_mut(&mut self, x: u32, y: u32) -> Option<&mut Self::PixelType> {
-            if x >= self.width() || y >= self.height() {
-                return None;
-            }
-
-            let row = self.pixel_row_mut(y)?;
-            let x = x / T::subpixels() as u32;
-            Some(&mut row[x as usize])
         }
     };
 }
