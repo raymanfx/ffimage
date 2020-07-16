@@ -6,6 +6,11 @@
 
 
 
+#### 0.6 (released)
+> * Benchmark fixes
+> * StorageType now derives from num_traits::Num
+> * Removed Resize trait
+
 #### 0.5 (released)
 > * Dynamic image API rework
 
