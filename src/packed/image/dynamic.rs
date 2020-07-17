@@ -20,32 +20,6 @@ pub enum MemoryView<'a> {
 }
 
 impl<'a> MemoryView<'a> {
-    /// Returns a memory view
-    ///
-    /// It is ensured that only the proper type representation can be cast from the underlying
-    /// view. If, for example, you were to call the method on a U16 view and try to get a [u8]
-    /// slice reference, the function would return None instead.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ffimage::packed::image::dynamic::MemoryView;
-    ///
-    /// let mem: Vec<u8> = Vec::new();
-    /// let view = MemoryView::new(&mem).unwrap();
-    /// ```
-    pub fn new<T: 'static>(raw: &[T]) -> Option<Self> {
-        if TypeId::of::<T>() == TypeId::of::<u8>() {
-            let mem = unsafe { &*(raw as *const [T] as *const [u8]) };
-            Some(MemoryView::U8(mem))
-        } else if TypeId::of::<T>() == TypeId::of::<u16>() {
-            let mem = unsafe { &*(raw as *const [T] as *const [u16]) };
-            Some(MemoryView::U16(mem))
-        } else {
-            None
-        }
-    }
-
     /// Returns the slice representation of a memory view
     ///
     /// It is ensured that only the proper type representation can be cast from the underlying
@@ -102,6 +76,22 @@ impl<'a> MemoryView<'a> {
     }
 }
 
+impl<'a, T: 'static> TryFrom<&[T]> for MemoryView<'a> {
+    type Error = ();
+
+    fn try_from(slice: &[T]) -> Result<Self, Self::Error> {
+        if TypeId::of::<T>() == TypeId::of::<u8>() {
+            let mem = unsafe { &*(slice as *const [T] as *const [u8]) };
+            Ok(MemoryView::U8(mem))
+        } else if TypeId::of::<T>() == TypeId::of::<u16>() {
+            let mem = unsafe { &*(slice as *const [T] as *const [u16]) };
+            Ok(MemoryView::U16(mem))
+        } else {
+            Err(())
+        }
+    }
+}
+
 /// Runtime memory buffer
 pub enum MemoryBuffer {
     U8(Vec<u8>),
@@ -109,32 +99,6 @@ pub enum MemoryBuffer {
 }
 
 impl MemoryBuffer {
-    /// Returns a memory buffer
-    ///
-    /// It is ensured that only the proper type representation can be cast from the underlying
-    /// view. If, for example, you were to call the method on a U16 view and try to get a [u8]
-    /// slice reference, the function would return None instead.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ffimage::packed::image::dynamic::MemoryBuffer;
-    ///
-    /// let mem: Vec<u8> = Vec::new();
-    /// let buf = MemoryBuffer::new(&mem).unwrap();
-    /// ```
-    pub fn new<T: 'static>(raw: &[T]) -> Option<Self> {
-        if TypeId::of::<T>() == TypeId::of::<u8>() {
-            let mem = unsafe { &*(raw as *const [T] as *const [u8]) };
-            Some(MemoryBuffer::U8(mem.to_vec()))
-        } else if TypeId::of::<T>() == TypeId::of::<u16>() {
-            let mem = unsafe { &*(raw as *const [T] as *const [u16]) };
-            Some(MemoryBuffer::U16(mem.to_vec()))
-        } else {
-            None
-        }
-    }
-
     /// Returns the slice representation of a memory buffer
     ///
     /// It is ensured that only the proper type representation can be cast from the underlying
@@ -226,6 +190,22 @@ impl MemoryBuffer {
     }
 }
 
+impl<T: 'static> TryFrom<&[T]> for MemoryBuffer {
+    type Error = ();
+
+    fn try_from(slice: &[T]) -> Result<Self, Self::Error> {
+        if TypeId::of::<T>() == TypeId::of::<u8>() {
+            let mem = unsafe { &*(slice as *const [T] as *const [u8]) };
+            Ok(MemoryBuffer::U8(mem.to_vec()))
+        } else if TypeId::of::<T>() == TypeId::of::<u16>() {
+            let mem = unsafe { &*(slice as *const [T] as *const [u16]) };
+            Ok(MemoryBuffer::U16(mem.to_vec()))
+        } else {
+            Err(())
+        }
+    }
+}
+
 /// Image view parametrized by its pixel type
 pub struct DynamicView<'a> {
     raw: MemoryView<'a>,
@@ -264,15 +244,15 @@ impl<'a> DynamicView<'a> {
             return None;
         }
 
-        let mem = MemoryView::new(raw);
+        let mem = MemoryView::try_from(raw);
         match mem {
-            Some(raw) => Some(DynamicView {
+            Ok(raw) => Some(DynamicView {
                 raw,
                 width,
                 height,
                 stride,
             }),
-            _ => None,
+            Err(_) => None,
         }
     }
 
@@ -442,15 +422,15 @@ impl DynamicBuffer {
             return None;
         }
 
-        let mem = MemoryBuffer::new(raw);
+        let mem = MemoryBuffer::try_from(raw);
         match mem {
-            Some(raw) => Some(DynamicBuffer {
+            Ok(raw) => Some(DynamicBuffer {
                 raw,
                 width,
                 height,
                 stride,
             }),
-            _ => None,
+            Err(_) => None,
         }
     }
 
