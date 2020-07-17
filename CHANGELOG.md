@@ -6,6 +6,10 @@
 
 
 
+#### 0.7 (released)
+> * Dynamic image view/buffer improvements
+> * Buffers now offer a from_raw() constructor which consumes a Vec
+
 #### 0.6 (released)
 > * Benchmark fixes
 > * StorageType now derives from num_traits::Num
