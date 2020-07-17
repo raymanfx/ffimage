@@ -44,7 +44,7 @@ mod buffer {
     #[test]
     fn with_raw() {
         let mem: Vec<u8> = vec![0; 27];
-        let buf = DynamicImageBuffer::with_raw(3, 3, &mem).unwrap();
+        let buf = DynamicImageBuffer::from_raw(3, 3, mem).unwrap();
         assert_eq!(buf.raw().len(), 3 * 3 * 3);
         assert_eq!(buf.width(), 3);
         assert_eq!(buf.height(), 3);

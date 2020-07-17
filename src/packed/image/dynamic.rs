@@ -80,14 +80,16 @@ impl<'a, T: 'static> TryFrom<&[T]> for MemoryView<'a> {
     type Error = ();
 
     fn try_from(slice: &[T]) -> Result<Self, Self::Error> {
-        if TypeId::of::<T>() == TypeId::of::<u8>() {
-            let mem = unsafe { &*(slice as *const [T] as *const [u8]) };
-            Ok(MemoryView::U8(mem))
-        } else if TypeId::of::<T>() == TypeId::of::<u16>() {
-            let mem = unsafe { &*(slice as *const [T] as *const [u16]) };
-            Ok(MemoryView::U16(mem))
-        } else {
-            Err(())
+        unsafe {
+            if TypeId::of::<T>() == TypeId::of::<u8>() {
+                let mem = &*(slice as *const [T] as *const [u8]);
+                Ok(MemoryView::U8(mem))
+            } else if TypeId::of::<T>() == TypeId::of::<u16>() {
+                let mem = &*(slice as *const [T] as *const [u16]);
+                Ok(MemoryView::U16(mem))
+            } else {
+                Err(())
+            }
         }
     }
 }
@@ -190,18 +192,27 @@ impl MemoryBuffer {
     }
 }
 
-impl<T: 'static> TryFrom<&[T]> for MemoryBuffer {
+impl<T: 'static> TryFrom<Vec<T>> for MemoryBuffer {
     type Error = ();
 
-    fn try_from(slice: &[T]) -> Result<Self, Self::Error> {
-        if TypeId::of::<T>() == TypeId::of::<u8>() {
-            let mem = unsafe { &*(slice as *const [T] as *const [u8]) };
-            Ok(MemoryBuffer::U8(mem.to_vec()))
-        } else if TypeId::of::<T>() == TypeId::of::<u16>() {
-            let mem = unsafe { &*(slice as *const [T] as *const [u16]) };
-            Ok(MemoryBuffer::U16(mem.to_vec()))
-        } else {
-            Err(())
+    fn try_from(raw: Vec<T>) -> Result<Self, Self::Error> {
+        let mut raw = raw;
+        unsafe {
+            if TypeId::of::<T>() == TypeId::of::<u8>() {
+                let mem = raw.as_mut_ptr() as *mut u8;
+                let len = raw.len();
+                let cap = raw.capacity();
+                mem::forget(raw);
+                Ok(MemoryBuffer::U8(Vec::from_raw_parts(mem, len, cap)))
+            } else if TypeId::of::<T>() == TypeId::of::<u16>() {
+                let mem = raw.as_mut_ptr() as *mut u16;
+                let len = raw.len();
+                let cap = raw.capacity();
+                mem::forget(raw);
+                Ok(MemoryBuffer::U16(Vec::from_raw_parts(mem, len, cap)))
+            } else {
+                Err(())
+            }
         }
     }
 }
@@ -399,7 +410,7 @@ impl DynamicBuffer {
     /// * `width` - Width in pixels
     /// * `height` - Height in pixels
     /// * `typ` - Storage type
-    /// * `raw` - Raw memory region to interpret as typed image
+    /// * `raw` - Raw memory region owned by the instance
     ///
     /// # Example
     ///
@@ -407,9 +418,9 @@ impl DynamicBuffer {
     /// use ffimage::packed::DynamicImageBuffer;
     ///
     /// let mem: Vec<u8> = vec![0; 12];
-    /// let buf = DynamicImageBuffer::with_raw(2, 2, &mem);
+    /// let buf = DynamicImageBuffer::from_raw(2, 2, mem);
     /// ```
-    pub fn with_raw<T: 'static>(width: u32, height: u32, raw: &[T]) -> Option<Self> {
+    pub fn from_raw<T: 'static>(width: u32, height: u32, raw: Vec<T>) -> Option<Self> {
         // require the same amount of elements per row
         if raw.len() % height as usize != 0 {
             return None;
