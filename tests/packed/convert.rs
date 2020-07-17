@@ -57,7 +57,7 @@ fn try_convert_rgb_to_bgra() {
             let pix_out = buf.get_pixel(j, i).unwrap();
             assert_eq!(
                 pix_out,
-                Bgra::<u8>::new([pix_in[2], pix_in[1], pix_in[0], 0])
+                Bgra::<u8>::new([pix_in[2], pix_in[1], pix_in[0], 255])
             );
         }
     }

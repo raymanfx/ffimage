@@ -1,6 +1,7 @@
 use std::array;
 use std::convert::TryFrom;
 
+use num::traits::Bounded;
 use num_traits::AsPrimitive;
 
 use crate::color::bgr::*;
@@ -22,10 +23,17 @@ macro_rules! impl_from_pix_to_pix3 {
 
 macro_rules! impl_from_pix_to_pix4 {
     ($src:ident, $dst:ident, $_0:expr, $_1:expr, $_2:expr) => {
-        impl<I: StorageType + AsPrimitive<O>, O: StorageType + 'static> From<$src<I>> for $dst<O> {
+        impl<I: StorageType + AsPrimitive<O>, O: StorageType + Bounded + 'static> From<$src<I>>
+            for $dst<O>
+        {
             fn from(pix: $src<I>) -> Self {
                 $dst {
-                    0: [pix[$_0].as_(), pix[$_1].as_(), pix[$_2].as_(), O::zero()],
+                    0: [
+                        pix[$_0].as_(),
+                        pix[$_1].as_(),
+                        pix[$_2].as_(),
+                        O::max_value(),
+                    ],
                 }
             }
         }
