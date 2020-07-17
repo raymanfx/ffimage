@@ -399,7 +399,7 @@ impl<T: Pixel> GenericBuffer<T> {
     ///
     /// * `width` - Width in pixels
     /// * `height` - Height in pixels
-    /// * `raw` - Pixel memory storage to copy
+    /// * `raw` - Pixel memory storage owned by the instance
     ///
     /// # Example
     ///
@@ -408,13 +408,13 @@ impl<T: Pixel> GenericBuffer<T> {
     /// use ffimage::core::ImageBuffer;
     /// use ffimage::packed::GenericImageBuffer;
     ///
-    /// let mem = vec![0; 3];
-    /// let mut buf = GenericImageBuffer::<Rgb<u8>>::with_raw(1, 1, &mem)
+    /// let mut mem = vec![0; 3];
+    /// let mut buf = GenericImageBuffer::<Rgb<u8>>::from_raw(1, 1, mem)
     ///     .expect("Memory region too small");
     /// let pix = Rgb::<u8>::new([255, 255, 255]);
     /// buf.set_pixel(0, 0, &pix).unwrap();
     /// ```
-    pub fn with_raw(width: u32, height: u32, raw: &[T::T]) -> Option<Self> {
+    pub fn from_raw(width: u32, height: u32, raw: Vec<T::T>) -> Option<Self> {
         // require the same amount of elements per row
         if raw.len() % height as usize != 0 {
             return None;
@@ -429,7 +429,7 @@ impl<T: Pixel> GenericBuffer<T> {
         }
 
         Some(GenericBuffer {
-            raw: raw.to_vec(),
+            raw,
             width,
             height,
             stride,
@@ -487,16 +487,22 @@ impl<'a, T: Pixel> IntoIterator for &'a mut GenericBuffer<T> {
     }
 }
 
+impl<T: Pixel> Into<Vec<T::T>> for GenericBuffer<T> {
+    fn into(self) -> Vec<T::T> {
+        self.raw
+    }
+}
+
 impl<'a, T: Pixel> From<&GenericView<'a, T>> for GenericBuffer<T> {
     fn from(view: &GenericView<'a, T>) -> Self {
         // unwrap() is safe here because the view itself was checked when it was created
-        GenericBuffer::with_raw(view.width(), view.height(), view.raw()).unwrap()
+        GenericBuffer::from_raw(view.width(), view.height(), view.raw().to_vec()).unwrap()
     }
 }
 
 impl<'a, T: Pixel> From<&GenericFlatBuffer<'a, T>> for GenericBuffer<T> {
     fn from(view: &GenericFlatBuffer<'a, T>) -> Self {
         // unwrap() is safe here because the view itself was checked when it was created
-        GenericBuffer::with_raw(view.width(), view.height(), view.raw()).unwrap()
+        GenericBuffer::from_raw(view.width(), view.height(), view.raw().to_vec()).unwrap()
     }
 }
