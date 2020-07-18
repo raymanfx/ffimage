@@ -281,23 +281,32 @@ impl<'a> DynamicView<'a> {
     /// ```
     /// use ffimage::packed::DynamicImageView;
     ///
-    /// let mem = vec![0; 12];
+    /// let mem: Vec<u8> = vec![0; 12];
     /// let view = DynamicImageView::with_stride(&mem, 2, 2, 6)
     ///     .expect("Memory region too small");
     /// ```
-    pub fn with_stride(raw: &'a [u8], width: u32, height: u32, stride: usize) -> Option<Self> {
+    pub fn with_stride<T: 'static>(
+        raw: &'a [T],
+        width: u32,
+        height: u32,
+        stride: usize,
+    ) -> Option<Self> {
         let len = height as usize * stride;
 
         if stride > 0 && raw.len() != len {
             return None;
         }
 
-        Some(DynamicView {
-            raw: MemoryView::U8(raw),
-            width,
-            height,
-            stride,
-        })
+        let mem = MemoryView::try_from(raw);
+        match mem {
+            Ok(raw) => Some(DynamicView {
+                raw,
+                width,
+                height,
+                stride,
+            }),
+            Err(_) => None,
+        }
     }
 
     /// Returns the raw memory
