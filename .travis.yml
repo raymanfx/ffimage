@@ -11,10 +11,10 @@ jobs:
   fast_finish: true
   include:
     - {}
-    - stage: build
+    - stage: check
       script:
-        - cargo build --no-default-features
-        - cargo build --features rayon
+        - cargo check --no-default-features
+        - cargo check --features rayon
     - stage: test
       script:
         - cargo test --no-default-features
@@ -32,7 +32,7 @@ jobs:
         - cargo clippy -- -D warnings
 
 stages:
-  - build
+  - check
   - test
   - fmt
   - clippy
