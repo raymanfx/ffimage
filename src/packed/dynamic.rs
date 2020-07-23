@@ -3,7 +3,7 @@ use std::convert::TryFrom;
 use std::mem;
 
 use crate::core::traits::Pixel;
-use crate::packed::image::generic::GenericView;
+use crate::packed::generic::GenericView;
 
 #[derive(Clone, Copy)]
 /// Runtime storage type

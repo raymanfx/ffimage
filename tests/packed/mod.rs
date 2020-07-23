@@ -1,2 +1,3 @@
 mod convert;
-mod image;
+mod dynamic;
+mod generic;

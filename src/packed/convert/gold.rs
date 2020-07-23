@@ -1,5 +1,5 @@
 use crate::core::traits::{ImageView, Pixel, TryConvert, TryConvertSlice};
-use crate::packed::image::{GenericBuffer, GenericFlatBuffer, GenericView};
+use crate::packed::generic::{GenericBuffer, GenericFlatBuffer, GenericView};
 use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
 macro_rules! impl_TryConvert {
