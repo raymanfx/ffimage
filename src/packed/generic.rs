@@ -1,3 +1,5 @@
+use core::ops::{Index, IndexMut};
+
 use std::mem;
 
 use num_traits::identities::Zero;
@@ -22,19 +24,12 @@ macro_rules! impl_ImageView {
             self.stride
         }
 
-        fn get_pixel(&self, x: u32, y: u32) -> Option<Self::T> {
+        fn pixel(&self, x: u32, y: u32) -> Option<Self::T> {
             if x >= self.width() || y >= self.height() {
                 return None;
             }
 
-            // determine the offset in the raw buffer
-            let stride_elems = self.stride() / mem::size_of::<T::T>();
-            let off: usize = y as usize * stride_elems + x as usize * T::channels() as usize;
-            let slice = &self.raw[off..off + T::channels() as usize];
-            match Self::T::try_from(slice) {
-                Ok(pix) => Some(pix),
-                Err(_) => None,
-            }
+            Some(self[y as usize][x as usize])
         }
     };
 }
@@ -46,15 +41,7 @@ macro_rules! impl_ImageBuffer {
                 return Err(());
             }
 
-            // determine the offset in the raw buffer
-            let stride_elems = self.stride() / mem::size_of::<T::T>();
-            let off: usize = y as usize * stride_elems + x as usize * T::channels() as usize;
-            let slice = &mut self.raw[off..off + T::channels() as usize];
-            for i in 0..slice.len() {
-                // i can never be out of bounds because the pixel is strongly typed
-                slice[i] = pix.at(i);
-            }
-
+            self[y as usize][x as usize] = *pix;
             Ok(())
         }
     };
@@ -64,15 +51,39 @@ macro_rules! impl_AccessPixel {
     ($id:ident) => {
         type PixelType = T;
 
-        fn pixel_row(&self, y: u32) -> Option<&[Self::PixelType]> {
+        fn row(&self, y: u32) -> Option<&[Self::PixelType]> {
             if y >= self.height() {
                 return None;
             }
 
+            Some(&self[y as usize])
+        }
+    };
+}
+
+macro_rules! impl_AccessPixelMut {
+    ($id:ident) => {
+        type PixelType = T;
+
+        fn row_mut(&mut self, y: u32) -> Option<&mut [Self::PixelType]> {
+            if y >= self.height() {
+                return None;
+            }
+
+            Some(&mut self[y as usize])
+        }
+    };
+}
+
+macro_rules! impl_Index {
+    ($id:ident) => {
+        type Output = [T];
+
+        fn index(&self, index: usize) -> &Self::Output {
             // determine the offset in the raw buffer
             let pixels_per_row = self.width() / T::subpixels() as u32;
             let stride_elems = self.stride() / mem::size_of::<T::T>();
-            let off: usize = y as usize * stride_elems;
+            let off: usize = index * stride_elems;
             let slice = &self.raw[off..off + stride_elems];
             let (head, body, _tail) = unsafe { slice.align_to::<T>() };
             assert!(head.is_empty(), "raw data is not aligned");
@@ -82,24 +93,18 @@ macro_rules! impl_AccessPixel {
                 "invalid number of row items"
             );
 
-            Some(body)
+            body
         }
     };
 }
 
-macro_rules! impl_AccessPixelMut {
+macro_rules! impl_IndexMut {
     ($id:ident) => {
-        type PixelType = T;
-
-        fn pixel_row_mut(&mut self, y: u32) -> Option<&mut [Self::PixelType]> {
-            if y >= self.height() {
-                return None;
-            }
-
+        fn index_mut(&mut self, index: usize) -> &mut Self::Output {
             // determine the offset in the raw buffer
             let pixels_per_row = self.width() / T::subpixels() as u32;
             let stride_elems = self.stride() / mem::size_of::<T::T>();
-            let off: usize = y as usize * stride_elems;
+            let off: usize = index * stride_elems;
             let slice = &mut self.raw[off..off + stride_elems];
             let (head, body, _tail) = unsafe { slice.align_to_mut::<T>() };
             assert!(head.is_empty(), "raw data is not aligned");
@@ -109,7 +114,7 @@ macro_rules! impl_AccessPixelMut {
                 "invalid number of row items"
             );
 
-            Some(body)
+            body
         }
     };
 }
@@ -128,7 +133,7 @@ macro_rules! impl_Iterator {
                 return None;
             }
 
-            let pixel = self.img.pixel(self.x, self.y);
+            let pixel = self.img.get(self.x, self.y);
             self.x += 1;
 
             pixel
@@ -152,7 +157,7 @@ macro_rules! impl_IteratorMut {
                 return None;
             }
 
-            let pixel = self.img.pixel_mut(self.x, self.y);
+            let pixel = self.img.get_mut(self.x, self.y);
             self.x += 1;
 
             // This is safe because...
@@ -228,6 +233,10 @@ impl<'a, T: Pixel> ImageView for GenericView<'a, T> {
 
 impl<'a, T: Pixel> AccessPixel for GenericView<'a, T> {
     impl_AccessPixel!(GenericView);
+}
+
+impl<'a, T: Pixel> Index<usize> for GenericView<'a, T> {
+    impl_Index!(GenericView);
 }
 
 impl<'a, T: Pixel> Iterator for PixelIter<'a, GenericView<'a, T>> {
@@ -321,6 +330,14 @@ impl<'a, T: Pixel> AccessPixel for GenericFlatBuffer<'a, T> {
 
 impl<'a, T: Pixel> AccessPixelMut for GenericFlatBuffer<'a, T> {
     impl_AccessPixelMut!(GenericFlatBuffer);
+}
+
+impl<'a, T: Pixel> Index<usize> for GenericFlatBuffer<'a, T> {
+    impl_Index!(GenericFlatBuffer);
+}
+
+impl<'a, T: Pixel> IndexMut<usize> for GenericFlatBuffer<'a, T> {
+    impl_IndexMut!(GenericFlatBuffer);
 }
 
 impl<'a, T: Pixel> Iterator for PixelIter<'a, GenericFlatBuffer<'a, T>> {
@@ -459,6 +476,14 @@ impl<T: Pixel> AccessPixel for GenericBuffer<T> {
 
 impl<T: Pixel> AccessPixelMut for GenericBuffer<T> {
     impl_AccessPixelMut!(GenericBuffer);
+}
+
+impl<T: Pixel> Index<usize> for GenericBuffer<T> {
+    impl_Index!(GenericBuffer);
+}
+
+impl<T: Pixel> IndexMut<usize> for GenericBuffer<T> {
+    impl_IndexMut!(GenericBuffer);
 }
 
 impl<'a, T: Pixel> Iterator for PixelIter<'a, GenericBuffer<T>> {

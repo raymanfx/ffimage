@@ -57,7 +57,7 @@ pub trait ImageView {
     fn stride(&self) -> usize;
 
     /// Returns the pixel at the specified coordinates
-    fn get_pixel(&self, x: u32, y: u32) -> Option<Self::T>;
+    fn pixel(&self, x: u32, y: u32) -> Option<Self::T>;
 }
 
 /// Buffered image, provides read-write pixel access

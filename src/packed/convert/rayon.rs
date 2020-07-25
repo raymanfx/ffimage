@@ -44,8 +44,8 @@ macro_rules! impl_TryConvert {
 
             (0..self.height()).into_par_iter().for_each(|i| {
                 let output = output.get();
-                let row_in = self.pixel_row(i).unwrap();
-                let row_out = output.pixel_row_mut(i).unwrap();
+                let row_in = self.row(i).unwrap();
+                let row_out = output.row_mut(i).unwrap();
                 // TODO: marshal error
                 SP::try_convert(row_in, row_out).unwrap();
             });
@@ -70,8 +70,8 @@ macro_rules! impl_TryConvertFlat {
 
             (0..self.height()).into_par_iter().for_each(|i| {
                 let output = output.get();
-                let row_in = self.pixel_row(i).unwrap();
-                let row_out = output.pixel_row_mut(i).unwrap();
+                let row_in = self.row(i).unwrap();
+                let row_out = output.row_mut(i).unwrap();
                 // TODO: marshal error
                 SP::try_convert(row_in, row_out).unwrap();
             });

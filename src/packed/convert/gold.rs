@@ -13,8 +13,8 @@ macro_rules! impl_TryConvert {
 
             // iterate over the source pixels and convert them
             for i in 0..self.height() {
-                let row_in = self.pixel_row(i).unwrap();
-                let row_out = output.pixel_row_mut(i).unwrap();
+                let row_in = self.row(i).unwrap();
+                let row_out = output.row_mut(i).unwrap();
                 let res = SP::try_convert(row_in, row_out);
                 if res.is_err() {
                     return Err(())
@@ -37,8 +37,8 @@ macro_rules! impl_TryConvertFlat {
 
             // iterate over the source pixels and convert them
             for i in 0..self.height() {
-                let row_in = self.pixel_row(i).unwrap();
-                let row_out = output.pixel_row_mut(i).unwrap();
+                let row_in = self.row(i).unwrap();
+                let row_out = output.row_mut(i).unwrap();
                 let res = SP::try_convert(row_in, row_out);
                 if res.is_err() {
                     return Err(())

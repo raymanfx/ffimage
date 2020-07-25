@@ -8,11 +8,11 @@ pub trait AccessPixel {
     type PixelType: Pixel;
 
     /// Returns the pixel row at the specified y offset
-    fn pixel_row(&self, y: u32) -> Option<&[Self::PixelType]>;
+    fn row(&self, y: u32) -> Option<&[Self::PixelType]>;
 
     /// Returns the pixel at the specified coordinates
-    fn pixel(&self, x: u32, y: u32) -> Option<&Self::PixelType> {
-        let row = self.pixel_row(y)?;
+    fn get(&self, x: u32, y: u32) -> Option<&Self::PixelType> {
+        let row = self.row(y)?;
         let x = x / Self::PixelType::subpixels() as u32;
         if x as usize >= row.len() {
             return None;
@@ -29,11 +29,11 @@ pub trait AccessPixelMut {
     type PixelType: Pixel;
 
     /// Returns the pixel row at the specified y offset
-    fn pixel_row_mut(&mut self, y: u32) -> Option<&mut [Self::PixelType]>;
+    fn row_mut(&mut self, y: u32) -> Option<&mut [Self::PixelType]>;
 
     /// Returns the pixel at the specified coordinates
-    fn pixel_mut(&mut self, x: u32, y: u32) -> Option<&mut Self::PixelType> {
-        let row = self.pixel_row_mut(y)?;
+    fn get_mut(&mut self, x: u32, y: u32) -> Option<&mut Self::PixelType> {
+        let row = self.row_mut(y)?;
         let x = x / Self::PixelType::subpixels() as u32;
         if x as usize >= row.len() {
             return None;

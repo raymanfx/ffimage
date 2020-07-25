@@ -15,8 +15,8 @@ fn convert_rgb_to_gray() {
 
     for i in 0..view.height() {
         for j in 0..view.width() {
-            let pix_in = view.get_pixel(j, i).unwrap();
-            let pix_out = buf.get_pixel(j, i).unwrap();
+            let pix_in = view.pixel(j, i).unwrap();
+            let pix_out = buf.pixel(j, i).unwrap();
 
             // rec601 luma
             let y = (0.2126 * pix_in[0] as f32
@@ -36,8 +36,8 @@ fn convert_gray_to_rgb() {
 
     for i in 0..view.height() {
         for j in 0..view.width() {
-            let pix_in = view.get_pixel(j, i).unwrap();
-            let pix_out = buf.get_pixel(j, i).unwrap();
+            let pix_in = view.pixel(j, i).unwrap();
+            let pix_out = buf.pixel(j, i).unwrap();
             assert_eq!(pix_out, Rgb::<u16>::new([pix_in[0], pix_in[0], pix_in[0]]));
         }
     }
@@ -53,8 +53,8 @@ fn try_convert_rgb_to_bgra() {
 
     for i in 0..view.height() {
         for j in 0..view.width() {
-            let pix_in = view.get_pixel(j, i).unwrap();
-            let pix_out = buf.get_pixel(j, i).unwrap();
+            let pix_in = view.pixel(j, i).unwrap();
+            let pix_out = buf.pixel(j, i).unwrap();
             assert_eq!(
                 pix_out,
                 Bgra::<u8>::new([pix_in[2], pix_in[1], pix_in[0], 255])
@@ -83,8 +83,8 @@ fn try_convert_dynamic_to_gray() {
 
     for i in 0..generic_view.height() {
         for j in 0..generic_view.width() {
-            let pix_in = generic_view.get_pixel(j, i).unwrap();
-            let pix_out = buf.get_pixel(j, i).unwrap();
+            let pix_in = generic_view.pixel(j, i).unwrap();
+            let pix_out = buf.pixel(j, i).unwrap();
 
             // rec601 luma
             let y = (0.2126 * pix_in[0] as f32
