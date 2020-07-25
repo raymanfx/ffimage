@@ -1,6 +1,3 @@
-pub mod traits;
-pub use traits::{AccessPixel, AccessPixelMut};
-
 pub mod generic;
 pub use generic::{
     GenericBuffer as GenericImageBuffer, GenericFlatBuffer as GenericImageFlatBuffer,

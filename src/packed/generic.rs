@@ -6,7 +6,6 @@ use num_traits::identities::Zero;
 
 use crate::core::iter::{PixelIter, PixelIterMut};
 use crate::core::traits::{ImageBuffer, ImageView, Pixel};
-use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
 macro_rules! impl_ImageView {
     ($id:ident) => {
@@ -43,34 +42,6 @@ macro_rules! impl_ImageBuffer {
 
             self[y as usize][x as usize] = *pix;
             Ok(())
-        }
-    };
-}
-
-macro_rules! impl_AccessPixel {
-    ($id:ident) => {
-        type PixelType = T;
-
-        fn row(&self, y: u32) -> Option<&[Self::PixelType]> {
-            if y >= self.height() {
-                return None;
-            }
-
-            Some(&self[y as usize])
-        }
-    };
-}
-
-macro_rules! impl_AccessPixelMut {
-    ($id:ident) => {
-        type PixelType = T;
-
-        fn row_mut(&mut self, y: u32) -> Option<&mut [Self::PixelType]> {
-            if y >= self.height() {
-                return None;
-            }
-
-            Some(&mut self[y as usize])
         }
     };
 }
@@ -133,10 +104,10 @@ macro_rules! impl_Iterator {
                 return None;
             }
 
-            let pixel = self.img.get(self.x, self.y);
+            let x = self.x;
             self.x += 1;
 
-            pixel
+            Some(&self.img[self.y as usize][x as usize])
         }
     };
 }
@@ -157,7 +128,7 @@ macro_rules! impl_IteratorMut {
                 return None;
             }
 
-            let pixel = self.img.get_mut(self.x, self.y);
+            let x = self.x;
             self.x += 1;
 
             // This is safe because...
@@ -166,7 +137,7 @@ macro_rules! impl_IteratorMut {
             // next element, that you get a different reference every time and never the same
             // reference twice. Of course, we know that such an iterator won't give you the
             // same reference twice.
-            unsafe { mem::transmute(pixel) }
+            unsafe { mem::transmute(&self.img[self.y as usize][x as usize]) }
         }
     };
 }
@@ -229,10 +200,6 @@ impl<'a, T: Pixel> GenericView<'a, T> {
 
 impl<'a, T: Pixel> ImageView for GenericView<'a, T> {
     impl_ImageView!(GenericView);
-}
-
-impl<'a, T: Pixel> AccessPixel for GenericView<'a, T> {
-    impl_AccessPixel!(GenericView);
 }
 
 impl<'a, T: Pixel> Index<usize> for GenericView<'a, T> {
@@ -322,14 +289,6 @@ impl<'a, T: Pixel> ImageView for GenericFlatBuffer<'a, T> {
 
 impl<'a, T: Pixel> ImageBuffer for GenericFlatBuffer<'a, T> {
     impl_ImageBuffer!(GenericFlatBuffer);
-}
-
-impl<'a, T: Pixel> AccessPixel for GenericFlatBuffer<'a, T> {
-    impl_AccessPixel!(GenericFlatBuffer);
-}
-
-impl<'a, T: Pixel> AccessPixelMut for GenericFlatBuffer<'a, T> {
-    impl_AccessPixelMut!(GenericFlatBuffer);
 }
 
 impl<'a, T: Pixel> Index<usize> for GenericFlatBuffer<'a, T> {
@@ -468,14 +427,6 @@ impl<T: Pixel> ImageView for GenericBuffer<T> {
 
 impl<T: Pixel> ImageBuffer for GenericBuffer<T> {
     impl_ImageBuffer!(GenericBuffer);
-}
-
-impl<T: Pixel> AccessPixel for GenericBuffer<T> {
-    impl_AccessPixel!(GenericBuffer);
-}
-
-impl<T: Pixel> AccessPixelMut for GenericBuffer<T> {
-    impl_AccessPixelMut!(GenericBuffer);
 }
 
 impl<T: Pixel> Index<usize> for GenericBuffer<T> {

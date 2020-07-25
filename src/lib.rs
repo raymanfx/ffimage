@@ -16,6 +16,5 @@ pub mod prelude {
             GenericBuffer as GenericImageBuffer, GenericFlatBuffer as GenericImageFlatBuffer,
             GenericView as GenericImageView,
         },
-        packed::traits::{AccessPixel, AccessPixelMut},
     };
 }

@@ -4,7 +4,6 @@ use rayon::prelude::*;
 
 use crate::core::traits::{ImageView, Pixel, TryConvert, TryConvertSlice};
 use crate::packed::generic::{GenericBuffer, GenericFlatBuffer, GenericView};
-use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
 // This is a private helper struct to share buffers between threads in a lock free manner where we
 // would usually need a Mutex. Only use this when you can ensure that all usage of the wrapped
@@ -44,8 +43,8 @@ macro_rules! impl_TryConvert {
 
             (0..self.height()).into_par_iter().for_each(|i| {
                 let output = output.get();
-                let row_in = self.row(i).unwrap();
-                let row_out = output.row_mut(i).unwrap();
+                let row_in = &self[i as usize];
+                let row_out = &mut output[i as usize];
                 // TODO: marshal error
                 SP::try_convert(row_in, row_out).unwrap();
             });
@@ -70,8 +69,8 @@ macro_rules! impl_TryConvertFlat {
 
             (0..self.height()).into_par_iter().for_each(|i| {
                 let output = output.get();
-                let row_in = self.row(i).unwrap();
-                let row_out = output.row_mut(i).unwrap();
+                let row_in = &self[i as usize];
+                let row_out = &mut output[i as usize];
                 // TODO: marshal error
                 SP::try_convert(row_in, row_out).unwrap();
             });

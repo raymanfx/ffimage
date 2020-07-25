@@ -70,56 +70,6 @@ macro_rules! test_ImageView {
             assert_eq!(pix[1], 20);
             assert_eq!(pix[2], 30);
         }
-
-        #[test]
-        fn row() {
-            let mut mem = vec![0; 12];
-            mem[6] = 10;
-            mem[7] = 20;
-            mem[8] = 30;
-            mem[9] = 11;
-            mem[10] = 21;
-            mem[11] = 31;
-            let view = $id::<Rgb<u8>>::new(&mut mem, 2, 2).unwrap();
-            let row = view.row(1).unwrap();
-            assert_eq!(row[0], Rgb::<u8>::new([10, 20, 30]));
-            assert_eq!(row[1], Rgb::<u8>::new([11, 21, 31]));
-
-            let mut mem = vec![0; 14];
-            mem[7] = 10;
-            mem[8] = 20;
-            mem[9] = 30;
-            mem[10] = 11;
-            mem[11] = 21;
-            mem[12] = 31;
-            let view = $id::<Rgb<u8>>::new(&mut mem, 2, 2).unwrap();
-            let row = view.row(1).unwrap();
-            assert_eq!(row[0], Rgb::<u8>::new([10, 20, 30]));
-            assert_eq!(row[1], Rgb::<u8>::new([11, 21, 31]));
-        }
-
-        #[test]
-        fn get() {
-            let mut mem = vec![0; 27];
-            mem[18] = 10;
-            mem[19] = 20;
-            mem[20] = 30;
-            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            let pix = view.get(0, 2).unwrap();
-            assert_eq!(pix[0], 10);
-            assert_eq!(pix[1], 20);
-            assert_eq!(pix[2], 30);
-
-            let mut mem = vec![0; 30];
-            mem[20] = 10;
-            mem[21] = 20;
-            mem[22] = 30;
-            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            let pix = view.get(0, 2).unwrap();
-            assert_eq!(pix[0], 10);
-            assert_eq!(pix[1], 20);
-            assert_eq!(pix[2], 30);
-        }
     };
 }
 
@@ -162,65 +112,13 @@ macro_rules! test_ImageBuffer {
             assert_eq!(pix[1], 20);
             assert_eq!(pix[2], 30);
         }
-
-        #[test]
-        fn row_mut() {
-            let mut mem = vec![0; 12];
-            mem[6] = 10;
-            mem[7] = 20;
-            mem[8] = 30;
-            mem[9] = 11;
-            mem[10] = 21;
-            mem[11] = 31;
-            let mut buf = $id::<Rgb<u8>>::new(&mut mem, 2, 2).unwrap();
-            let row = buf.row_mut(1).unwrap();
-            assert_eq!(row[0], Rgb::<u8>::new([10, 20, 30]));
-            assert_eq!(row[1], Rgb::<u8>::new([11, 21, 31]));
-
-            let mut mem = vec![0; 14];
-            mem[7] = 10;
-            mem[8] = 20;
-            mem[9] = 30;
-            mem[10] = 11;
-            mem[11] = 21;
-            mem[12] = 31;
-            let mut buf = $id::<Rgb<u8>>::new(&mut mem, 2, 2).unwrap();
-            let row = buf.row_mut(1).unwrap();
-            assert_eq!(row[0], Rgb::<u8>::new([10, 20, 30]));
-            assert_eq!(row[1], Rgb::<u8>::new([11, 21, 31]));
-        }
-
-        #[test]
-        fn get_mut() {
-            let mut mem = vec![0; 27];
-            let mut buf = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            let pix = buf.get_mut(0, 2).unwrap();
-            pix[0] = 11;
-            pix[1] = 22;
-            pix[2] = 33;
-            let pix = buf.get(0, 2).unwrap();
-            assert_eq!(pix[0], 11);
-            assert_eq!(pix[1], 22);
-            assert_eq!(pix[2], 33);
-
-            let mut mem = vec![0; 30];
-            let mut buf = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            let pix = buf.get_mut(0, 2).unwrap();
-            pix[0] = 11;
-            pix[1] = 22;
-            pix[2] = 33;
-            let pix = buf.get(0, 2).unwrap();
-            assert_eq!(pix[0], 11);
-            assert_eq!(pix[1], 22);
-            assert_eq!(pix[2], 33);
-        }
     };
 }
 
 mod view {
     use ffimage::color::*;
     use ffimage::core::ImageView;
-    use ffimage::packed::{AccessPixel, GenericImageView};
+    use ffimage::packed::GenericImageView;
 
     test_ImageView!(GenericImageView);
 }
@@ -228,7 +126,7 @@ mod view {
 mod flatbuffer {
     use ffimage::color::*;
     use ffimage::core::{ImageBuffer, ImageView};
-    use ffimage::packed::{AccessPixel, AccessPixelMut, GenericImageFlatBuffer};
+    use ffimage::packed::GenericImageFlatBuffer;
 
     test_ImageView!(GenericImageFlatBuffer);
     test_ImageBuffer!(GenericImageFlatBuffer);

@@ -1,6 +1,5 @@
 use crate::core::traits::{ImageView, Pixel, TryConvert, TryConvertSlice};
 use crate::packed::generic::{GenericBuffer, GenericFlatBuffer, GenericView};
-use crate::packed::traits::{AccessPixel, AccessPixelMut};
 
 macro_rules! impl_TryConvert {
     () => {
@@ -13,8 +12,8 @@ macro_rules! impl_TryConvert {
 
             // iterate over the source pixels and convert them
             for i in 0..self.height() {
-                let row_in = self.row(i).unwrap();
-                let row_out = output.row_mut(i).unwrap();
+                let row_in = &self[i as usize];
+                let row_out = &mut output[i as usize];
                 let res = SP::try_convert(row_in, row_out);
                 if res.is_err() {
                     return Err(())
@@ -37,8 +36,8 @@ macro_rules! impl_TryConvertFlat {
 
             // iterate over the source pixels and convert them
             for i in 0..self.height() {
-                let row_in = self.row(i).unwrap();
-                let row_out = output.row_mut(i).unwrap();
+                let row_in = &self[i as usize];
+                let row_out = &mut output[i as usize];
                 let res = SP::try_convert(row_in, row_out);
                 if res.is_err() {
                     return Err(())
