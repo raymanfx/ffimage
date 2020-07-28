@@ -7,14 +7,12 @@ pub mod prelude {
     pub use crate::{
         color::*,
         core::iter::{PixelIter, PixelIterMut},
-        core::traits::{ImageBuffer, ImageView, Macropixel, Pixel, TryConvert},
-        packed::dynamic::{
-            DynamicBuffer as DynamicImageBuffer, DynamicView as DynamicImageView,
-            StorageType as DynamicStorageType,
-        },
+        core::traits::{GenericImage, GenericImageView, Macropixel, Pixel, TryConvert},
+        packed::dynamic,
+        packed::generic,
         packed::generic::{
-            GenericBuffer as GenericImageBuffer, GenericFlatBuffer as GenericImageFlatBuffer,
-            GenericView as GenericImageView,
+            ImageBuffer as PackedImageBuffer, ImageView as PackedImageView,
+            ImageViewMut as PackedImageViewMut,
         },
     };
 }

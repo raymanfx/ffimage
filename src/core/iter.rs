@@ -1,4 +1,4 @@
-use crate::core::traits::{ImageBuffer, ImageView};
+use crate::core::traits::{GenericImage, GenericImageView};
 
 /// An iterator type for images to iterate through pixels
 ///
@@ -13,7 +13,7 @@ pub struct PixelIter<'a, I> {
     pub height: u32,
 }
 
-impl<'a, I: ImageView> PixelIter<'a, I> {
+impl<'a, I: GenericImageView> PixelIter<'a, I> {
     /// Returns an iterator which goes through all image pixel rows
     ///
     /// # Arguments
@@ -60,7 +60,7 @@ pub struct PixelIterMut<'a, I> {
     pub height: u32,
 }
 
-impl<'a, I: ImageBuffer> PixelIterMut<'a, I> {
+impl<'a, I: GenericImage> PixelIterMut<'a, I> {
     /// Returns an iterator which goes through all image pixel rows
     ///
     /// # Arguments

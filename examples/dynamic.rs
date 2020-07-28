@@ -2,6 +2,7 @@ extern crate ffimage;
 
 use std::convert::TryFrom;
 
+use ffimage::packed::dynamic::ImageView as DynamicView;
 use ffimage::prelude::*;
 
 fn main() {
@@ -13,19 +14,19 @@ fn main() {
     // A dynamic view represents an image buffer just like a generic view does, but the format does
     // not have to be known at compile time. Instead, these views can be converted into generic
     // views at runtime.
-    let dynamic_view = DynamicImageView::new(&mem, 2, 2).unwrap();
+    let dynamic_view = DynamicView::new(&mem, 2, 2).unwrap();
 
     // Create a statically typed view of the image, assuming it is RGB 24 bits per pixel.
     // The u8 parameter denotes the internal storage type used by image pixels. In our case, each
     // channel requires eight bits, which makes for a total of 3 * 8 = 24 bits per pixel.
     // The length of the memory slice is validated and a None value is returned when constraints
     // are violated.
-    let generic_view = GenericImageView::<Rgb<u8>>::try_from(&dynamic_view).unwrap();
+    let generic_view = PackedImageView::<Rgb<u8>>::try_from(&dynamic_view).unwrap();
 
     // Create a target buffer for the destination image.
     // Here we initialize an empty buffer with width and height both being zero. This is fine since
     // the `Convert` trait implementation will resize the target buffer for us.
-    let mut buf = GenericImageBuffer::<Gray<u8>>::new(0, 0);
+    let mut buf = PackedImageBuffer::<Gray<u8>>::new(0, 0);
 
     // Perform the actual conversion.
     // This cannot fail since the target buffer is resizable.

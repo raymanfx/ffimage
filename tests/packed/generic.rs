@@ -1,4 +1,4 @@
-macro_rules! test_ImageView {
+macro_rules! test_GenericImageView {
     ($id:ident) => {
         #[test]
         fn width() {
@@ -73,7 +73,7 @@ macro_rules! test_ImageView {
     };
 }
 
-macro_rules! test_ImageBuffer {
+macro_rules! test_GenericImage {
     ($id:ident) => {
         #[test]
         fn index_mut() {
@@ -117,25 +117,25 @@ macro_rules! test_ImageBuffer {
 
 mod view {
     use ffimage::color::*;
-    use ffimage::core::ImageView;
-    use ffimage::packed::GenericImageView;
+    use ffimage::core::GenericImageView;
+    use ffimage::packed::generic::ImageView;
 
-    test_ImageView!(GenericImageView);
+    test_GenericImageView!(ImageView);
 }
 
 mod flatbuffer {
     use ffimage::color::*;
-    use ffimage::core::{ImageBuffer, ImageView};
-    use ffimage::packed::GenericImageFlatBuffer;
+    use ffimage::core::{GenericImage, GenericImageView};
+    use ffimage::packed::generic::ImageViewMut;
 
-    test_ImageView!(GenericImageFlatBuffer);
-    test_ImageBuffer!(GenericImageFlatBuffer);
+    test_GenericImageView!(ImageViewMut);
+    test_GenericImage!(ImageViewMut);
 }
 
 mod buffer {
     use ffimage::color::*;
-    use ffimage::core::ImageView;
-    use ffimage::packed::{GenericImageBuffer, GenericImageView};
+    use ffimage::core::GenericImageView;
+    use ffimage::packed::generic::{ImageBuffer, ImageView};
 
     #[test]
     fn from() {
@@ -143,8 +143,8 @@ mod buffer {
         mem[18] = 10;
         mem[19] = 20;
         mem[20] = 30;
-        let view = GenericImageView::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-        let buffer = GenericImageBuffer::<Rgb<u8>>::from(&view);
+        let view = ImageView::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
+        let buffer = ImageBuffer::<Rgb<u8>>::from(&view);
         assert_eq!(buffer.width(), view.width());
         assert_eq!(buffer.height(), view.height());
         assert_eq!(buffer.stride(), (buffer.width() * 3) as usize);

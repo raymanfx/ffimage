@@ -1,13 +1,13 @@
-use crate::core::traits::{ImageView, Pixel, TryConvert, TryConvertSlice};
-use crate::packed::generic::{GenericBuffer, GenericFlatBuffer, GenericView};
+use crate::core::traits::{GenericImageView, Pixel, TryConvert, TryConvertSlice};
+use crate::packed::generic::{ImageBuffer, ImageView, ImageViewMut};
 
 macro_rules! impl_TryConvert {
     () => {
         type Error = ();
 
-        fn try_convert(&self, output: &mut GenericBuffer<DP>) -> Result<(), Self::Error> {
+        fn try_convert(&self, output: &mut ImageBuffer<DP>) -> Result<(), Self::Error> {
             if output.width() < self.width() || output.height() < self.height() {
-                *output = GenericBuffer::new(self.width(), self.height());
+                *output = ImageBuffer::new(self.width(), self.height());
             }
 
             // iterate over the source pixels and convert them
@@ -29,7 +29,7 @@ macro_rules! impl_TryConvertFlat {
     () => {
         type Error = ();
 
-        fn try_convert(&self, output: &mut GenericFlatBuffer<DP>) -> Result<(), Self::Error> {
+        fn try_convert(&self, output: &mut ImageViewMut<DP>) -> Result<(), Self::Error> {
             if output.width() < self.width() || output.height() < self.height() {
                 return Err(());
             }
@@ -49,7 +49,7 @@ macro_rules! impl_TryConvertFlat {
     };
 }
 
-impl<'a, SP, DP> TryConvert<GenericBuffer<DP>> for GenericView<'a, SP>
+impl<'a, SP, DP> TryConvert<ImageBuffer<DP>> for ImageView<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
@@ -58,7 +58,7 @@ where
     impl_TryConvert!();
 }
 
-impl<'a, SP, DP> TryConvert<GenericBuffer<DP>> for GenericFlatBuffer<'a, SP>
+impl<'a, SP, DP> TryConvert<ImageBuffer<DP>> for ImageViewMut<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
@@ -67,7 +67,7 @@ where
     impl_TryConvert!();
 }
 
-impl<SP, DP> TryConvert<GenericBuffer<DP>> for GenericBuffer<SP>
+impl<SP, DP> TryConvert<ImageBuffer<DP>> for ImageBuffer<SP>
 where
     SP: Pixel,
     DP: Pixel,
@@ -76,7 +76,7 @@ where
     impl_TryConvert!();
 }
 
-impl<'a, SP, DP> TryConvert<GenericFlatBuffer<'a, DP>> for GenericView<'a, SP>
+impl<'a, SP, DP> TryConvert<ImageViewMut<'a, DP>> for ImageView<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
@@ -85,7 +85,7 @@ where
     impl_TryConvertFlat!();
 }
 
-impl<'a, SP, DP> TryConvert<GenericFlatBuffer<'a, DP>> for GenericFlatBuffer<'a, SP>
+impl<'a, SP, DP> TryConvert<ImageViewMut<'a, DP>> for ImageViewMut<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
@@ -94,7 +94,7 @@ where
     impl_TryConvertFlat!();
 }
 
-impl<'a, SP, DP> TryConvert<GenericFlatBuffer<'a, DP>> for GenericBuffer<SP>
+impl<'a, SP, DP> TryConvert<ImageViewMut<'a, DP>> for ImageBuffer<SP>
 where
     SP: Pixel,
     DP: Pixel,

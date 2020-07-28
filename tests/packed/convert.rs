@@ -1,16 +1,15 @@
 use std::convert::TryFrom;
 
 use ffimage::color::*;
-use ffimage::core::{ImageView, TryConvert};
-use ffimage::packed::{
-    DynamicImageView, GenericImageBuffer, GenericImageFlatBuffer, GenericImageView,
-};
+use ffimage::core::{GenericImageView, TryConvert};
+use ffimage::packed::dynamic::ImageView as DynamicView;
+use ffimage::packed::generic::{ImageBuffer, ImageView, ImageViewMut};
 
 #[test]
 fn convert_rgb_to_gray() {
     let mem: [u8; 12] = [10; 12];
-    let view = GenericImageView::<Rgb<u8>>::new(&mem, 2, 2).unwrap();
-    let mut buf = GenericImageBuffer::<Gray<u8>>::new(0, 0);
+    let view = ImageView::<Rgb<u8>>::new(&mem, 2, 2).unwrap();
+    let mut buf = ImageBuffer::<Gray<u8>>::new(0, 0);
     view.try_convert(&mut buf).unwrap();
 
     for i in 0..view.height() {
@@ -30,8 +29,8 @@ fn convert_rgb_to_gray() {
 #[test]
 fn convert_gray_to_rgb() {
     let mem: [u16; 4] = [0; 4];
-    let view = GenericImageView::<Gray<u16>>::new(&mem, 2, 2).unwrap();
-    let mut buf = GenericImageBuffer::<Rgb<u16>>::new(0, 0);
+    let view = ImageView::<Gray<u16>>::new(&mem, 2, 2).unwrap();
+    let mut buf = ImageBuffer::<Rgb<u16>>::new(0, 0);
     view.try_convert(&mut buf).unwrap();
 
     for i in 0..view.height() {
@@ -46,9 +45,9 @@ fn convert_gray_to_rgb() {
 #[test]
 fn try_convert_rgb_to_bgra() {
     let mem: [u8; 12] = [10, 20, 30, 11, 21, 31, 12, 22, 32, 13, 23, 33];
-    let view = GenericImageView::<Rgb<u8>>::new(&mem, 2, 2).unwrap();
+    let view = ImageView::<Rgb<u8>>::new(&mem, 2, 2).unwrap();
     let mut mem_flat: [u8; 16] = [0; 16];
-    let mut buf = GenericImageFlatBuffer::<Bgra<u8>>::new(&mut mem_flat, 2, 2).unwrap();
+    let mut buf = ImageViewMut::<Bgra<u8>>::new(&mut mem_flat, 2, 2).unwrap();
     view.try_convert(&mut buf).unwrap();
 
     for i in 0..view.height() {
@@ -66,9 +65,9 @@ fn try_convert_rgb_to_bgra() {
 #[test]
 fn try_convert_rgb_to_gray() {
     let mem: [u8; 12] = [10, 20, 30, 11, 21, 31, 12, 22, 32, 13, 23, 33];
-    let view = GenericImageView::<Rgb<u8>>::new(&mem, 2, 2).unwrap();
+    let view = ImageView::<Rgb<u8>>::new(&mem, 2, 2).unwrap();
     let mut mem_flat: [u8; 3] = [0; 3];
-    let mut buf = GenericImageFlatBuffer::<Gray<u8>>::new(&mut mem_flat, 2, 1).unwrap();
+    let mut buf = ImageViewMut::<Gray<u8>>::new(&mut mem_flat, 2, 1).unwrap();
     let result = view.try_convert(&mut buf);
     assert!(result.is_err());
 }
@@ -76,9 +75,9 @@ fn try_convert_rgb_to_gray() {
 #[test]
 fn try_convert_dynamic_to_gray() {
     let mem: [u8; 12] = [10; 12];
-    let dynamic_view = DynamicImageView::new(&mem, 2, 2).unwrap();
-    let generic_view = GenericImageView::<Rgb<u8>>::try_from(&dynamic_view).unwrap();
-    let mut buf = GenericImageBuffer::<Gray<u8>>::new(0, 0);
+    let dynamic_view = DynamicView::new(&mem, 2, 2).unwrap();
+    let generic_view = ImageView::<Rgb<u8>>::try_from(&dynamic_view).unwrap();
+    let mut buf = ImageBuffer::<Gray<u8>>::new(0, 0);
     generic_view.try_convert(&mut buf).unwrap();
 
     for i in 0..generic_view.height() {

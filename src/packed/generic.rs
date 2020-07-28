@@ -5,9 +5,9 @@ use std::mem;
 use num_traits::identities::Zero;
 
 use crate::core::iter::{PixelIter, PixelIterMut};
-use crate::core::traits::{ImageBuffer, ImageView, Pixel};
+use crate::core::traits::{GenericImage, GenericImageView, Pixel};
 
-macro_rules! impl_ImageView {
+macro_rules! impl_GenericImageView {
     ($id:ident) => {
         type T = T;
 
@@ -33,7 +33,7 @@ macro_rules! impl_ImageView {
     };
 }
 
-macro_rules! impl_ImageBuffer {
+macro_rules! impl_GenericImage {
     ($id:ident) => {
         fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), ()> {
             if x >= self.width() || y >= self.height() {
@@ -143,14 +143,14 @@ macro_rules! impl_IteratorMut {
 }
 
 /// Image view parametrized by its pixel type
-pub struct GenericView<'a, T: Pixel> {
+pub struct ImageView<'a, T: Pixel> {
     raw: &'a [T::T],
     width: u32,
     height: u32,
     stride: usize,
 }
 
-impl<'a, T: Pixel> GenericView<'a, T> {
+impl<'a, T: Pixel> ImageView<'a, T> {
     /// Returns an image view with pixel accessors
     ///
     /// The backing memory storage must have the same element type as the underlying pixel type of
@@ -166,10 +166,10 @@ impl<'a, T: Pixel> GenericView<'a, T> {
     ///
     /// ```
     /// use ffimage::color::rgb::*;
-    /// use ffimage::packed::GenericImageView;
+    /// use ffimage::packed::generic::ImageView;
     ///
     /// let mem = vec![0; 3];
-    /// let view = GenericImageView::<Rgb<u8>>::new(&mem, 1, 1).expect("Memory region too small");
+    /// let view = ImageView::<Rgb<u8>>::new(&mem, 1, 1).expect("Memory region too small");
     /// ```
     pub fn new(raw: &'a [T::T], width: u32, height: u32) -> Option<Self> {
         // require the same amount of elements per row
@@ -185,7 +185,7 @@ impl<'a, T: Pixel> GenericView<'a, T> {
             return None;
         }
 
-        Some(GenericView {
+        Some(ImageView {
             raw,
             width,
             height,
@@ -198,35 +198,35 @@ impl<'a, T: Pixel> GenericView<'a, T> {
     }
 }
 
-impl<'a, T: Pixel> ImageView for GenericView<'a, T> {
-    impl_ImageView!(GenericView);
+impl<'a, T: Pixel> GenericImageView for ImageView<'a, T> {
+    impl_GenericImageView!(ImageView);
 }
 
-impl<'a, T: Pixel> Index<usize> for GenericView<'a, T> {
-    impl_Index!(GenericView);
+impl<'a, T: Pixel> Index<usize> for ImageView<'a, T> {
+    impl_Index!(ImageView);
 }
 
-impl<'a, T: Pixel> Iterator for PixelIter<'a, GenericView<'a, T>> {
-    impl_Iterator!(GenericView);
+impl<'a, T: Pixel> Iterator for PixelIter<'a, ImageView<'a, T>> {
+    impl_Iterator!(ImageView);
 }
 
-impl<'a, T: Pixel> IntoIterator for &'a GenericView<'a, T> {
+impl<'a, T: Pixel> IntoIterator for &'a ImageView<'a, T> {
     type Item = &'a T;
-    type IntoIter = PixelIter<'a, GenericView<'a, T>>;
+    type IntoIter = PixelIter<'a, ImageView<'a, T>>;
 
     fn into_iter(self) -> Self::IntoIter {
         PixelIter::new(self)
     }
 }
 
-pub struct GenericFlatBuffer<'a, T: Pixel> {
+pub struct ImageViewMut<'a, T: Pixel> {
     raw: &'a mut [T::T],
     width: u32,
     height: u32,
     stride: usize,
 }
 
-impl<'a, T: Pixel> GenericFlatBuffer<'a, T> {
+impl<'a, T: Pixel> ImageViewMut<'a, T> {
     /// Returns a flat image buffer with pixel accessors
     ///
     /// 'Flat' means that the backing memory of the image is not allocated by the struct.
@@ -243,11 +243,11 @@ impl<'a, T: Pixel> GenericFlatBuffer<'a, T> {
     ///
     /// ```
     /// use ffimage::color::rgb::*;
-    /// use ffimage::core::ImageBuffer;
-    /// use ffimage::packed::GenericImageFlatBuffer;
+    /// use ffimage::core::GenericImage;
+    /// use ffimage::packed::generic::ImageViewMut;
     ///
     /// let mut mem = vec![0; 3];
-    /// let mut buf = GenericImageFlatBuffer::<Rgb<u8>>::new(&mut mem, 1, 1)
+    /// let mut buf = ImageViewMut::<Rgb<u8>>::new(&mut mem, 1, 1)
     ///     .expect("Memory region too small");
     /// let pix = Rgb::<u8>::new([255, 255, 255]);
     /// buf.set_pixel(0, 0, &pix).unwrap();
@@ -266,7 +266,7 @@ impl<'a, T: Pixel> GenericFlatBuffer<'a, T> {
             return None;
         }
 
-        Some(GenericFlatBuffer {
+        Some(ImageViewMut {
             raw,
             width,
             height,
@@ -283,56 +283,56 @@ impl<'a, T: Pixel> GenericFlatBuffer<'a, T> {
     }
 }
 
-impl<'a, T: Pixel> ImageView for GenericFlatBuffer<'a, T> {
-    impl_ImageView!(GenericFlatBuffer);
+impl<'a, T: Pixel> GenericImageView for ImageViewMut<'a, T> {
+    impl_GenericImageView!(ImageViewMut);
 }
 
-impl<'a, T: Pixel> ImageBuffer for GenericFlatBuffer<'a, T> {
-    impl_ImageBuffer!(GenericFlatBuffer);
+impl<'a, T: Pixel> GenericImage for ImageViewMut<'a, T> {
+    impl_GenericImage!(ImageViewMut);
 }
 
-impl<'a, T: Pixel> Index<usize> for GenericFlatBuffer<'a, T> {
-    impl_Index!(GenericFlatBuffer);
+impl<'a, T: Pixel> Index<usize> for ImageViewMut<'a, T> {
+    impl_Index!(ImageViewMut);
 }
 
-impl<'a, T: Pixel> IndexMut<usize> for GenericFlatBuffer<'a, T> {
-    impl_IndexMut!(GenericFlatBuffer);
+impl<'a, T: Pixel> IndexMut<usize> for ImageViewMut<'a, T> {
+    impl_IndexMut!(ImageViewMut);
 }
 
-impl<'a, T: Pixel> Iterator for PixelIter<'a, GenericFlatBuffer<'a, T>> {
-    impl_Iterator!(GenericFlatBuffer);
+impl<'a, T: Pixel> Iterator for PixelIter<'a, ImageViewMut<'a, T>> {
+    impl_Iterator!(ImageViewMut);
 }
 
-impl<'a, T: Pixel> Iterator for PixelIterMut<'a, GenericFlatBuffer<'a, T>> {
-    impl_IteratorMut!(GenericFlatBuffer);
+impl<'a, T: Pixel> Iterator for PixelIterMut<'a, ImageViewMut<'a, T>> {
+    impl_IteratorMut!(ImageViewMut);
 }
 
-impl<'a, T: Pixel> IntoIterator for &'a GenericFlatBuffer<'a, T> {
+impl<'a, T: Pixel> IntoIterator for &'a ImageViewMut<'a, T> {
     type Item = &'a T;
-    type IntoIter = PixelIter<'a, GenericFlatBuffer<'a, T>>;
+    type IntoIter = PixelIter<'a, ImageViewMut<'a, T>>;
 
     fn into_iter(self) -> Self::IntoIter {
         PixelIter::new(self)
     }
 }
 
-impl<'a, T: Pixel> IntoIterator for &'a mut GenericFlatBuffer<'a, T> {
+impl<'a, T: Pixel> IntoIterator for &'a mut ImageViewMut<'a, T> {
     type Item = &'a mut T;
-    type IntoIter = PixelIterMut<'a, GenericFlatBuffer<'a, T>>;
+    type IntoIter = PixelIterMut<'a, ImageViewMut<'a, T>>;
 
     fn into_iter(self) -> Self::IntoIter {
         PixelIterMut::new(self)
     }
 }
 
-pub struct GenericBuffer<T: Pixel> {
+pub struct ImageBuffer<T: Pixel> {
     raw: Vec<T::T>,
     width: u32,
     height: u32,
     stride: usize,
 }
 
-impl<T: Pixel> GenericBuffer<T> {
+impl<T: Pixel> ImageBuffer<T> {
     /// Returns an image buffer with pixel accessors
     ///
     /// The backing memory is allocated by this struct. There is no padding added so only the
@@ -348,10 +348,10 @@ impl<T: Pixel> GenericBuffer<T> {
     ///
     /// ```
     /// use ffimage::color::rgb::*;
-    /// use ffimage::core::ImageBuffer;
-    /// use ffimage::packed::GenericImageBuffer;
+    /// use ffimage::core::GenericImage;
+    /// use ffimage::packed::generic::ImageBuffer;
     ///
-    /// let mut buf = GenericImageBuffer::<Rgb<u8>>::new(3, 3);
+    /// let mut buf = ImageBuffer::<Rgb<u8>>::new(3, 3);
     /// let pix = Rgb::<u8>::new([255, 255, 255]);
     /// buf.set_pixel(0, 0, &pix).unwrap();
     /// ```
@@ -359,7 +359,7 @@ impl<T: Pixel> GenericBuffer<T> {
         let pixels_per_row = width / T::subpixels() as u32;
         let stride = pixels_per_row as usize * T::channels() as usize * mem::size_of::<T::T>();
 
-        GenericBuffer {
+        ImageBuffer {
             raw: vec![T::T::zero(); height as usize * pixels_per_row as usize * T::len()],
             width,
             height,
@@ -381,11 +381,11 @@ impl<T: Pixel> GenericBuffer<T> {
     ///
     /// ```
     /// use ffimage::color::rgb::*;
-    /// use ffimage::core::ImageBuffer;
-    /// use ffimage::packed::GenericImageBuffer;
+    /// use ffimage::core::GenericImage;
+    /// use ffimage::packed::generic::ImageBuffer;
     ///
     /// let mut mem = vec![0; 3];
-    /// let mut buf = GenericImageBuffer::<Rgb<u8>>::from_raw(1, 1, mem)
+    /// let mut buf = ImageBuffer::<Rgb<u8>>::from_raw(1, 1, mem)
     ///     .expect("Memory region too small");
     /// let pix = Rgb::<u8>::new([255, 255, 255]);
     /// buf.set_pixel(0, 0, &pix).unwrap();
@@ -404,7 +404,7 @@ impl<T: Pixel> GenericBuffer<T> {
             return None;
         }
 
-        Some(GenericBuffer {
+        Some(ImageBuffer {
             raw,
             width,
             height,
@@ -421,64 +421,64 @@ impl<T: Pixel> GenericBuffer<T> {
     }
 }
 
-impl<T: Pixel> ImageView for GenericBuffer<T> {
-    impl_ImageView!(GenericBuffer);
+impl<T: Pixel> GenericImageView for ImageBuffer<T> {
+    impl_GenericImageView!(ImageBuffer);
 }
 
-impl<T: Pixel> ImageBuffer for GenericBuffer<T> {
-    impl_ImageBuffer!(GenericBuffer);
+impl<T: Pixel> GenericImage for ImageBuffer<T> {
+    impl_GenericImage!(ImageBuffer);
 }
 
-impl<T: Pixel> Index<usize> for GenericBuffer<T> {
-    impl_Index!(GenericBuffer);
+impl<T: Pixel> Index<usize> for ImageBuffer<T> {
+    impl_Index!(ImageBuffer);
 }
 
-impl<T: Pixel> IndexMut<usize> for GenericBuffer<T> {
-    impl_IndexMut!(GenericBuffer);
+impl<T: Pixel> IndexMut<usize> for ImageBuffer<T> {
+    impl_IndexMut!(ImageBuffer);
 }
 
-impl<'a, T: Pixel> Iterator for PixelIter<'a, GenericBuffer<T>> {
-    impl_Iterator!(GenericBuffer);
+impl<'a, T: Pixel> Iterator for PixelIter<'a, ImageBuffer<T>> {
+    impl_Iterator!(ImageBuffer);
 }
 
-impl<'a, T: Pixel> Iterator for PixelIterMut<'a, GenericBuffer<T>> {
-    impl_IteratorMut!(GenericBuffer);
+impl<'a, T: Pixel> Iterator for PixelIterMut<'a, ImageBuffer<T>> {
+    impl_IteratorMut!(ImageBuffer);
 }
 
-impl<'a, T: Pixel> IntoIterator for &'a GenericBuffer<T> {
+impl<'a, T: Pixel> IntoIterator for &'a ImageBuffer<T> {
     type Item = &'a T;
-    type IntoIter = PixelIter<'a, GenericBuffer<T>>;
+    type IntoIter = PixelIter<'a, ImageBuffer<T>>;
 
     fn into_iter(self) -> Self::IntoIter {
         PixelIter::new(self)
     }
 }
 
-impl<'a, T: Pixel> IntoIterator for &'a mut GenericBuffer<T> {
+impl<'a, T: Pixel> IntoIterator for &'a mut ImageBuffer<T> {
     type Item = &'a mut T;
-    type IntoIter = PixelIterMut<'a, GenericBuffer<T>>;
+    type IntoIter = PixelIterMut<'a, ImageBuffer<T>>;
 
     fn into_iter(self) -> Self::IntoIter {
         PixelIterMut::new(self)
     }
 }
 
-impl<T: Pixel> Into<Vec<T::T>> for GenericBuffer<T> {
+impl<T: Pixel> Into<Vec<T::T>> for ImageBuffer<T> {
     fn into(self) -> Vec<T::T> {
         self.raw
     }
 }
 
-impl<'a, T: Pixel> From<&GenericView<'a, T>> for GenericBuffer<T> {
-    fn from(view: &GenericView<'a, T>) -> Self {
+impl<'a, T: Pixel> From<&ImageView<'a, T>> for ImageBuffer<T> {
+    fn from(view: &ImageView<'a, T>) -> Self {
         // unwrap() is safe here because the view itself was checked when it was created
-        GenericBuffer::from_raw(view.width(), view.height(), view.raw().to_vec()).unwrap()
+        ImageBuffer::from_raw(view.width(), view.height(), view.raw().to_vec()).unwrap()
     }
 }
 
-impl<'a, T: Pixel> From<&GenericFlatBuffer<'a, T>> for GenericBuffer<T> {
-    fn from(view: &GenericFlatBuffer<'a, T>) -> Self {
+impl<'a, T: Pixel> From<&ImageViewMut<'a, T>> for ImageBuffer<T> {
+    fn from(view: &ImageViewMut<'a, T>) -> Self {
         // unwrap() is safe here because the view itself was checked when it was created
-        GenericBuffer::from_raw(view.width(), view.height(), view.raw().to_vec()).unwrap()
+        ImageBuffer::from_raw(view.width(), view.height(), view.raw().to_vec()).unwrap()
     }
 }

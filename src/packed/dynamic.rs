@@ -3,7 +3,7 @@ use std::convert::TryFrom;
 use std::mem;
 
 use crate::core::traits::Pixel;
-use crate::packed::generic::GenericView;
+use crate::packed::generic::ImageView as GenericImageView;
 
 #[derive(Clone, Copy)]
 /// Runtime storage type
@@ -29,13 +29,14 @@ impl<'a> MemoryView<'a> {
     /// # Example
     ///
     /// ```
-    /// use ffimage::packed::DynamicImageView;
+    /// use std::convert::TryFrom;
+    /// use ffimage::packed::dynamic::MemoryView;
     ///
     /// let mem: Vec<u8> = vec![0; 12];
-    /// let view = DynamicImageView::new(&mem, 2, 2)
-    ///     .expect("Memory region too small");
+    /// let view = MemoryView::try_from(&mem[..])
+    ///     .expect("Failed to wrap memory region");
     ///
-    /// let slice: &[u8] = view.raw().as_slice()
+    /// let slice: &[u8] = view.as_slice()
     ///     .expect("Failed to cast memory view");
     /// ```
     pub fn as_slice<T: 'static>(&self) -> Option<&[T]> {
@@ -110,11 +111,14 @@ impl MemoryBuffer {
     /// # Example
     ///
     /// ```
-    /// use ffimage::packed::{DynamicImageBuffer, DynamicStorageType};
+    /// use std::convert::TryFrom;
+    /// use ffimage::packed::dynamic::{MemoryBuffer, StorageType};
     ///
-    /// let buf = DynamicImageBuffer::new(2, 2, 3, DynamicStorageType::U8);
+    /// let mut mem: Vec<u8> = vec![0; 12];
+    /// let buf = MemoryBuffer::try_from(mem)
+    ///     .expect("Failed to wrap memory region");
     ///
-    /// let slice: &[u8] = buf.raw().as_slice()
+    /// let slice: &[u8] = buf.as_slice()
     ///     .expect("Failed to cast memory buffer");
     /// ```
     pub fn as_slice<T: 'static>(&self) -> Option<&[T]> {
@@ -147,11 +151,14 @@ impl MemoryBuffer {
     /// # Example
     ///
     /// ```
-    /// use ffimage::packed::{DynamicImageBuffer, DynamicStorageType};
+    /// use std::convert::TryFrom;
+    /// use ffimage::packed::dynamic::{MemoryBuffer, StorageType};
     ///
-    /// let mut buf = DynamicImageBuffer::new(2, 2, 3, DynamicStorageType::U8);
+    /// let mut mem: Vec<u8> = vec![0; 12];
+    /// let mut buf = MemoryBuffer::try_from(mem)
+    ///     .expect("Failed to wrap memory region");
     ///
-    /// let slice: &[u8] = buf.raw_mut().as_mut_slice()
+    /// let slice: &mut [u8] = buf.as_mut_slice()
     ///     .expect("Failed to cast memory buffer");
     /// ```
     pub fn as_mut_slice<T: 'static>(&mut self) -> Option<&mut [T]> {
@@ -218,14 +225,14 @@ impl<T: 'static> TryFrom<Vec<T>> for MemoryBuffer {
 }
 
 /// Image view parametrized by its pixel type
-pub struct DynamicView<'a> {
+pub struct ImageView<'a> {
     raw: MemoryView<'a>,
     width: u32,
     height: u32,
     stride: usize,
 }
 
-impl<'a> DynamicView<'a> {
+impl<'a> ImageView<'a> {
     /// Returns an image view with unknown pixel type
     ///
     /// # Arguments
@@ -237,10 +244,10 @@ impl<'a> DynamicView<'a> {
     /// # Example
     ///
     /// ```
-    /// use ffimage::packed::DynamicImageView;
+    /// use ffimage::packed::dynamic::ImageView;
     ///
     /// let mem = vec![0; 12];
-    /// let view = DynamicImageView::new(&mem, 2, 2);
+    /// let view = ImageView::new(&mem, 2, 2);
     /// ```
     pub fn new<T: 'static>(raw: &'a [T], width: u32, height: u32) -> Option<Self> {
         // require the same amount of elements per row
@@ -257,7 +264,7 @@ impl<'a> DynamicView<'a> {
 
         let mem = MemoryView::try_from(raw);
         match mem {
-            Ok(raw) => Some(DynamicView {
+            Ok(raw) => Some(ImageView {
                 raw,
                 width,
                 height,
@@ -279,10 +286,10 @@ impl<'a> DynamicView<'a> {
     /// # Example
     ///
     /// ```
-    /// use ffimage::packed::DynamicImageView;
+    /// use ffimage::packed::dynamic::ImageView;
     ///
     /// let mem: Vec<u8> = vec![0; 12];
-    /// let view = DynamicImageView::with_stride(&mem, 2, 2, 6)
+    /// let view = ImageView::with_stride(&mem, 2, 2, 6)
     ///     .expect("Memory region too small");
     /// ```
     pub fn with_stride<T: 'static>(
@@ -299,7 +306,7 @@ impl<'a> DynamicView<'a> {
 
         let mem = MemoryView::try_from(raw);
         match mem {
-            Ok(raw) => Some(DynamicView {
+            Ok(raw) => Some(ImageView {
                 raw,
                 width,
                 height,
@@ -331,14 +338,14 @@ impl<'a> DynamicView<'a> {
 }
 
 /// Image buffer parametrized by its pixel type
-pub struct DynamicBuffer {
+pub struct ImageBuffer {
     raw: MemoryBuffer,
     width: u32,
     height: u32,
     stride: usize,
 }
 
-impl DynamicBuffer {
+impl ImageBuffer {
     /// Returns an empty image buffer
     ///
     /// # Arguments
@@ -348,9 +355,9 @@ impl DynamicBuffer {
     /// # Example
     ///
     /// ```
-    /// use ffimage::packed::{DynamicImageBuffer, DynamicStorageType};
+    /// use ffimage::packed::dynamic::{ImageBuffer, StorageType};
     ///
-    /// let buf = DynamicImageBuffer::empty(DynamicStorageType::U8);
+    /// let buf = ImageBuffer::empty(StorageType::U8);
     /// ```
     pub fn empty(typ: StorageType) -> Self {
         let raw: MemoryBuffer;
@@ -363,7 +370,7 @@ impl DynamicBuffer {
             }
         }
 
-        DynamicBuffer {
+        ImageBuffer {
             raw,
             width: 0,
             height: 0,
@@ -383,9 +390,9 @@ impl DynamicBuffer {
     /// # Example
     ///
     /// ```
-    /// use ffimage::packed::{DynamicImageBuffer, DynamicStorageType};
+    /// use ffimage::packed::dynamic::{ImageBuffer, StorageType};
     ///
-    /// let buf = DynamicImageBuffer::new(2, 2, 3, DynamicStorageType::U8);
+    /// let buf = ImageBuffer::new(2, 2, 3, StorageType::U8);
     /// ```
     pub fn new(width: u32, height: u32, channels: u32, typ: StorageType) -> Self {
         let elems = (height * width * channels) as usize * typ as usize;
@@ -404,7 +411,7 @@ impl DynamicBuffer {
             }
         }
 
-        DynamicBuffer {
+        ImageBuffer {
             raw,
             width,
             height,
@@ -424,10 +431,10 @@ impl DynamicBuffer {
     /// # Example
     ///
     /// ```
-    /// use ffimage::packed::DynamicImageBuffer;
+    /// use ffimage::packed::dynamic::ImageBuffer;
     ///
     /// let mem: Vec<u8> = vec![0; 12];
-    /// let buf = DynamicImageBuffer::from_raw(2, 2, mem);
+    /// let buf = ImageBuffer::from_raw(2, 2, mem);
     /// ```
     pub fn from_raw<T: 'static>(width: u32, height: u32, raw: Vec<T>) -> Option<Self> {
         // require the same amount of elements per row
@@ -444,7 +451,7 @@ impl DynamicBuffer {
 
         let mem = MemoryBuffer::try_from(raw);
         match mem {
-            Ok(raw) => Some(DynamicBuffer {
+            Ok(raw) => Some(ImageBuffer {
                 raw,
                 width,
                 height,
@@ -495,34 +502,34 @@ impl DynamicBuffer {
         }
     }
 
-    pub fn as_view(&self) -> DynamicView {
+    pub fn as_view(&self) -> ImageView {
         match &self.raw {
             MemoryBuffer::U8(data) => {
-                let view = DynamicView::new(data, self.width, self.height);
+                let view = ImageView::new(data, self.width, self.height);
                 view.unwrap()
             }
             MemoryBuffer::U16(data) => {
-                let view = DynamicView::new(data.as_slice(), self.width, self.height);
+                let view = ImageView::new(data.as_slice(), self.width, self.height);
                 view.unwrap()
             }
         }
     }
 }
 
-impl<'a, T> TryFrom<&DynamicView<'a>> for GenericView<'a, T>
+impl<'a, T> TryFrom<&ImageView<'a>> for GenericImageView<'a, T>
 where
     T: Pixel<T = u8>,
 {
     type Error = ();
 
-    fn try_from(input: &DynamicView<'a>) -> Result<Self, Self::Error> {
+    fn try_from(input: &ImageView<'a>) -> Result<Self, Self::Error> {
         let mem: &'a [u8];
         match input.raw {
             MemoryView::U8(view) => mem = view,
             _ => return Err(()),
         }
 
-        let view = GenericView::<T>::new(mem, input.width, input.height);
+        let view = GenericImageView::<T>::new(mem, input.width, input.height);
         match view {
             Some(view) => Ok(view),
             None => Err(()),

@@ -13,12 +13,12 @@ fn main() {
     // channel requires eight bits, which makes for a total of 3 * 8 = 24 bits per pixel.
     // The length of the memory slice is validated and a None value is returned when constraints
     // are violated.
-    let view = GenericImageView::<Rgb<u8>>::new(&mem, 2, 2).unwrap();
+    let view = PackedImageView::<Rgb<u8>>::new(&mem, 2, 2).unwrap();
 
     // Create a target buffer for the destination image.
     // Here we initialize an empty buffer with width and height both being zero. This is fine since
     // the `Convert` trait implementation will resize the target buffer for us.
-    let mut buf = GenericImageBuffer::<Gray<u8>>::new(0, 0);
+    let mut buf = PackedImageBuffer::<Gray<u8>>::new(0, 0);
 
     // Perform the actual conversion.
     // This cannot fail since the target buffer is resizable.

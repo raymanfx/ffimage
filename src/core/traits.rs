@@ -43,7 +43,7 @@ pub trait Macropixel: Pixel {
 }
 
 /// View into an image, provides read-only pixel access
-pub trait ImageView {
+pub trait GenericImageView {
     /// Pixel type
     type T: Pixel;
 
@@ -61,7 +61,7 @@ pub trait ImageView {
 }
 
 /// Buffered image, provides read-write pixel access
-pub trait ImageBuffer: ImageView {
+pub trait GenericImage: GenericImageView {
     /// Sets the pixel values at the specified coordinates
     fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), ()>;
 }
