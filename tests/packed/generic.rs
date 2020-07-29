@@ -70,6 +70,28 @@ macro_rules! test_GenericImageView {
             assert_eq!(pix[1], 20);
             assert_eq!(pix[2], 30);
         }
+
+        #[test]
+        fn view() {
+            // 4x4 RGB with one padding byte at the end of each row
+            let mut mem = vec![0; 52];
+            mem[16] = 10;
+            mem[17] = 20;
+            mem[18] = 30;
+            mem[32] = 11;
+            mem[33] = 21;
+            mem[34] = 31;
+            let view = $id::<Rgb<u8>>::new(&mut mem, 4, 4).unwrap();
+            let sub = view.view(1, 1, 2, 2).unwrap();
+            let pix = sub[0][0];
+            assert_eq!(pix[0], 10);
+            assert_eq!(pix[1], 20);
+            assert_eq!(pix[2], 30);
+            let pix = sub[1][1];
+            assert_eq!(pix[0], 11);
+            assert_eq!(pix[1], 21);
+            assert_eq!(pix[2], 31);
+        }
     };
 }
 

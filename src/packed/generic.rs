@@ -199,8 +199,14 @@ impl<'a, T: Pixel> ImageView<'a, T> {
     }
 }
 
-impl<'a, T: Pixel> GenericImageView for ImageView<'a, T> {
+impl<'a, T: Pixel + 'a> GenericImageView<'a> for ImageView<'a, T> {
     impl_GenericImageView!(ImageView);
+
+    type SubImage = SubImageView<'a, Self>;
+
+    fn view(&'a self, x: u32, y: u32, width: u32, height: u32) -> Option<Self::SubImage> {
+        SubImageView::new(self, x, y, width, height)
+    }
 }
 
 impl<'a, T: Pixel> Index<usize> for ImageView<'a, T> {
@@ -289,11 +295,17 @@ impl<'a, T: Pixel> ImageViewMut<'a, T> {
     }
 }
 
-impl<'a, T: Pixel> GenericImageView for ImageViewMut<'a, T> {
+impl<'a, T: Pixel + 'a> GenericImageView<'a> for ImageViewMut<'a, T> {
     impl_GenericImageView!(ImageViewMut);
+
+    type SubImage = SubImageView<'a, Self>;
+
+    fn view(&'a self, x: u32, y: u32, width: u32, height: u32) -> Option<Self::SubImage> {
+        SubImageView::new(self, x, y, width, height)
+    }
 }
 
-impl<'a, T: Pixel> GenericImage for ImageViewMut<'a, T> {
+impl<'a, T: Pixel + 'a> GenericImage<'a> for ImageViewMut<'a, T> {
     impl_GenericImage!(ImageViewMut);
 }
 
@@ -432,11 +444,17 @@ impl<T: Pixel> ImageBuffer<T> {
     }
 }
 
-impl<T: Pixel> GenericImageView for ImageBuffer<T> {
+impl<'a, T: Pixel + 'a> GenericImageView<'a> for ImageBuffer<T> {
     impl_GenericImageView!(ImageBuffer);
+
+    type SubImage = SubImageView<'a, Self>;
+
+    fn view(&'a self, x: u32, y: u32, width: u32, height: u32) -> Option<Self::SubImage> {
+        SubImageView::new(self, x, y, width, height)
+    }
 }
 
-impl<T: Pixel> GenericImage for ImageBuffer<T> {
+impl<'a, T: Pixel + 'a> GenericImage<'a> for ImageBuffer<T> {
     impl_GenericImage!(ImageBuffer);
 }
 
@@ -491,5 +509,98 @@ impl<'a, T: Pixel> From<&ImageViewMut<'a, T>> for ImageBuffer<T> {
     fn from(view: &ImageViewMut<'a, T>) -> Self {
         // unwrap() is safe here because the view itself was checked when it was created
         ImageBuffer::from_raw(view.width(), view.height(), view.raw().to_vec()).unwrap()
+    }
+}
+
+/// Sub image view into another image
+pub struct SubImageView<'a, I: GenericImageView<'a>> {
+    parent: &'a I,
+    x: u32,
+    y: u32,
+    width: u32,
+    height: u32,
+}
+
+impl<'a, I: GenericImageView<'a>> SubImageView<'a, I> {
+    /// Returns a new read-only view into another image.
+    ///
+    /// # Arguments
+    ///
+    /// * `parent` - Parent image backing the sub image
+    /// * `x` - X offset
+    /// * `y` - Y offset
+    /// * `width` - Width in pixels
+    /// * `height` - Height in pixels
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ffimage::color::rgb::*;
+    /// use ffimage::core::GenericImageView;
+    /// use ffimage::packed::generic::ImageBuffer;
+    ///
+    /// let mut buf = ImageBuffer::<Rgb<u8>>::new(3, 3);
+    /// let sub = buf.view(1, 1, 2, 2);
+    /// ```
+    pub fn new(parent: &'a I, x: u32, y: u32, width: u32, height: u32) -> Option<Self> {
+        if x + width > parent.width() || y + height > parent.height() {
+            return None;
+        }
+
+        Some(SubImageView {
+            parent,
+            x,
+            y,
+            width,
+            height,
+        })
+    }
+}
+
+impl<'a, I: GenericImageView<'a>> GenericImageView<'a> for SubImageView<'a, I> {
+    type T = I::T;
+    type SubImage = Self;
+
+    fn width(&self) -> u32 {
+        self.width
+    }
+
+    fn height(&self) -> u32 {
+        self.height
+    }
+
+    fn pixel(&self, x: u32, y: u32) -> Option<Self::T> {
+        self.parent.pixel(x + self.x, y + self.y)
+    }
+
+    fn view(&'a self, x: u32, y: u32, width: u32, height: u32) -> Option<Self::SubImage> {
+        SubImageView::new(self.parent, x + self.x, y + self.y, width, height)
+    }
+}
+
+impl<'a, T: Pixel> Index<usize> for SubImageView<'a, ImageView<'a, T>> {
+    type Output = [T];
+
+    fn index(&self, index: usize) -> &Self::Output {
+        let row = &self.parent[index + self.y as usize];
+        &row[self.x as usize..]
+    }
+}
+
+impl<'a, T: Pixel> Index<usize> for SubImageView<'a, ImageViewMut<'a, T>> {
+    type Output = [T];
+
+    fn index(&self, index: usize) -> &Self::Output {
+        let row = &self.parent[index + self.y as usize];
+        &row[self.x as usize..]
+    }
+}
+
+impl<'a, T: Pixel> Index<usize> for SubImageView<'a, ImageBuffer<T>> {
+    type Output = [T];
+
+    fn index(&self, index: usize) -> &Self::Output {
+        let row = &self.parent[index + self.y as usize];
+        &row[self.x as usize..]
     }
 }

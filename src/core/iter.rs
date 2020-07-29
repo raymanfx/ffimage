@@ -13,7 +13,7 @@ pub struct PixelIter<'a, I> {
     pub height: u32,
 }
 
-impl<'a, I: GenericImageView> PixelIter<'a, I> {
+impl<'a, I: GenericImageView<'a>> PixelIter<'a, I> {
     /// Returns an iterator which goes through all image pixel rows
     ///
     /// # Arguments
@@ -60,7 +60,7 @@ pub struct PixelIterMut<'a, I> {
     pub height: u32,
 }
 
-impl<'a, I: GenericImage> PixelIterMut<'a, I> {
+impl<'a, I: GenericImage<'a>> PixelIterMut<'a, I> {
     /// Returns an iterator which goes through all image pixel rows
     ///
     /// # Arguments
