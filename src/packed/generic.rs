@@ -19,10 +19,6 @@ macro_rules! impl_GenericImageView {
             self.height
         }
 
-        fn stride(&self) -> usize {
-            self.stride
-        }
-
         fn pixel(&self, x: u32, y: u32) -> Option<Self::T> {
             if x >= self.width() || y >= self.height() {
                 return None;
@@ -196,6 +192,11 @@ impl<'a, T: Pixel> ImageView<'a, T> {
     pub fn raw(&self) -> &[T::T] {
         &self.raw
     }
+
+    /// Returns the length of one pixel row in bytes
+    pub fn stride(&self) -> usize {
+        self.stride
+    }
 }
 
 impl<'a, T: Pixel> GenericImageView for ImageView<'a, T> {
@@ -280,6 +281,11 @@ impl<'a, T: Pixel> ImageViewMut<'a, T> {
 
     pub fn raw_mut(&mut self) -> &mut [T::T] {
         &mut self.raw
+    }
+
+    /// Returns the length of one pixel row in bytes
+    pub fn stride(&self) -> usize {
+        self.stride
     }
 }
 
@@ -418,6 +424,11 @@ impl<T: Pixel> ImageBuffer<T> {
 
     pub fn raw_mut(&mut self) -> &mut [T::T] {
         &mut self.raw
+    }
+
+    /// Returns the length of one pixel row in bytes
+    pub fn stride(&self) -> usize {
+        self.stride
     }
 }
 

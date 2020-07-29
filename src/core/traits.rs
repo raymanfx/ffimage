@@ -53,9 +53,6 @@ pub trait GenericImageView {
     /// Height in pixels
     fn height(&self) -> u32;
 
-    /// Length of one pixel row in bytes
-    fn stride(&self) -> usize;
-
     /// Returns the pixel at the specified coordinates
     fn pixel(&self, x: u32, y: u32) -> Option<Self::T>;
 }
