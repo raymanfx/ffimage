@@ -30,11 +30,23 @@ mod view {
 }
 
 mod buffer {
-    use ffimage::packed::dynamic::{ImageBuffer, StorageType};
+    use core::convert::From;
+    use ffimage::packed::dynamic::{ImageBuffer, ImageView, StorageType};
 
     #[test]
     fn new() {
         let buf = ImageBuffer::new(3, 3, 3 /* channels */, StorageType::U8);
+        assert_eq!(buf.raw().len(), 3 * 3 * 3);
+        assert_eq!(buf.width(), 3);
+        assert_eq!(buf.height(), 3);
+        assert_eq!(buf.stride(), 3 * 3);
+    }
+
+    #[test]
+    fn from() {
+        let mem: Vec<u8> = vec![0; 27];
+        let view = ImageView::new(&mem, 3, 3).unwrap();
+        let buf = ImageBuffer::from(&view);
         assert_eq!(buf.raw().len(), 3 * 3 * 3);
         assert_eq!(buf.width(), 3);
         assert_eq!(buf.height(), 3);

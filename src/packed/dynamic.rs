@@ -199,6 +199,15 @@ impl MemoryBuffer {
     }
 }
 
+impl<'a> From<&MemoryView<'a>> for MemoryBuffer {
+    fn from(view: &MemoryView<'a>) -> Self {
+        match view {
+            MemoryView::U8(raw) => MemoryBuffer::U8(raw.to_vec()),
+            MemoryView::U16(raw) => MemoryBuffer::U16(raw.to_vec()),
+        }
+    }
+}
+
 impl<T: 'static> TryFrom<Vec<T>> for MemoryBuffer {
     type Error = ();
 
@@ -512,6 +521,17 @@ impl ImageBuffer {
                 let view = ImageView::new(data.as_slice(), self.width, self.height);
                 view.unwrap()
             }
+        }
+    }
+}
+
+impl<'a> From<&ImageView<'a>> for ImageBuffer {
+    fn from(input: &ImageView<'a>) -> Self {
+        ImageBuffer {
+            raw: MemoryBuffer::from(&input.raw),
+            width: input.width,
+            height: input.height,
+            stride: input.stride,
         }
     }
 }
