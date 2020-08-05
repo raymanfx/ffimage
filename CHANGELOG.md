@@ -6,6 +6,13 @@
 
 
 
+#### 0.8 (released)
+> * Packed API rework
+>   * Renamed traits
+>   * Removed AccessPixel traits
+>   * Export only generic types in the prelude mod
+> * Implemented rectangular sub views for generic images
+
 #### 0.7 (released)
 > * Dynamic image view/buffer improvements
 > * Buffers now offer a from_raw() constructor which consumes a Vec
