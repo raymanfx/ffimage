@@ -6,7 +6,7 @@ macro_rules! impl_TryConvert {
         type Error = ();
 
         fn try_convert(&self, output: &mut ImageBuffer<DP>) -> Result<(), Self::Error> {
-            if output.width() < self.width() || output.height() < self.height() {
+            if output.width() != self.width() || output.height() != self.height() {
                 *output = ImageBuffer::new(self.width(), self.height());
             }
 
@@ -14,10 +14,10 @@ macro_rules! impl_TryConvert {
             for i in 0..self.height() {
                 let row_in = &self[i as usize];
                 let row_out = &mut output[i as usize];
-                let res = SP::try_convert(row_in, row_out);
-                if res.is_err() {
-                    return Err(())
-                }
+
+                // The convert operation can only fail if the target row cannot hold enough pixels,
+                // which is impossible because we already recreated the output buffer in that case.
+                SP::try_convert(row_in, row_out).unwrap();
             }
 
             Ok(())
@@ -30,7 +30,7 @@ macro_rules! impl_TryConvertFlat {
         type Error = ();
 
         fn try_convert(&self, output: &mut ImageViewMut<DP>) -> Result<(), Self::Error> {
-            if output.width() < self.width() || output.height() < self.height() {
+            if output.width() != self.width() || output.height() != self.height() {
                 return Err(());
             }
 

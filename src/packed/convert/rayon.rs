@@ -20,8 +20,8 @@ impl<T> UnsafeShared<T> {
     }
 
     #[allow(clippy::mut_from_ref)]
-    pub fn get(&self) -> &mut T {
-        unsafe { &mut *self.value.get() }
+    pub unsafe fn get(&self) -> &mut T {
+        &mut *self.value.get()
     }
 }
 
@@ -33,7 +33,7 @@ macro_rules! impl_TryConvert {
         type Error = ();
 
         fn try_convert(&self, output: &mut ImageBuffer<DP>) -> Result<(), Self::Error> {
-            if output.width() < self.width() || output.height() < self.height() {
+            if output.width() != self.width() || output.height() != self.height() {
                 *output = ImageBuffer::new(self.width(), self.height());
             }
 
@@ -42,10 +42,12 @@ macro_rules! impl_TryConvert {
             let output = UnsafeShared::new(output);
 
             (0..self.height()).into_par_iter().for_each(|i| {
-                let output = output.get();
+                let output = unsafe { output.get() };
                 let row_in = &self[i as usize];
                 let row_out = &mut output[i as usize];
-                // TODO: marshal error
+
+                // The convert operation can only fail if the target row cannot hold enough pixels,
+                // which is impossible because we already recreated the output buffer in that case.
                 SP::try_convert(row_in, row_out).unwrap();
             });
 
@@ -59,7 +61,7 @@ macro_rules! impl_TryConvertFlat {
         type Error = ();
 
         fn try_convert(&self, output: &mut ImageViewMut<'b, DP>) -> Result<(), Self::Error> {
-            if output.width() < self.width() || output.height() < self.height() {
+            if output.width() != self.width() || output.height() != self.height() {
                 return Err(());
             }
 
@@ -68,7 +70,7 @@ macro_rules! impl_TryConvertFlat {
             let output = UnsafeShared::new(output);
 
             (0..self.height()).into_par_iter().for_each(|i| {
-                let output = output.get();
+                let output = unsafe { output.get() };
                 let row_in = &self[i as usize];
                 let row_out = &mut output[i as usize];
                 // TODO: marshal error
