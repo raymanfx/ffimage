@@ -5,7 +5,7 @@ use std::mem;
 use crate::core::traits::Pixel;
 use crate::packed::generic::ImageView as GenericImageView;
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 /// Runtime storage type
 pub enum StorageType {
     /* integer types */
@@ -13,6 +13,7 @@ pub enum StorageType {
     U16 = 2,
 }
 
+#[derive(Debug, Clone, Copy)]
 /// Runtime memory view
 pub enum MemoryView<'a> {
     U8(&'a [u8]),
@@ -95,6 +96,7 @@ impl<'a, T: 'static> TryFrom<&[T]> for MemoryView<'a> {
     }
 }
 
+#[derive(Debug, Clone)]
 /// Runtime memory buffer
 pub enum MemoryBuffer {
     U8(Vec<u8>),
@@ -233,6 +235,7 @@ impl<T: 'static> TryFrom<Vec<T>> for MemoryBuffer {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 /// Image view parametrized by its pixel type
 pub struct ImageView<'a> {
     raw: MemoryView<'a>,
@@ -346,6 +349,7 @@ impl<'a> ImageView<'a> {
     }
 }
 
+#[derive(Debug, Clone)]
 /// Image buffer parametrized by its pixel type
 pub struct ImageBuffer {
     raw: MemoryBuffer,

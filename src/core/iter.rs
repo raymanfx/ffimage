@@ -1,5 +1,6 @@
 use crate::core::traits::{GenericImage, GenericImageView};
 
+#[derive(Debug, Clone, Copy)]
 /// An iterator type for images to iterate through pixels
 ///
 /// The actual item type (e.g. full object or reference) depends on the implementation.
@@ -47,6 +48,7 @@ impl<'a, I: GenericImageView<'a>> PixelIter<'a, I> {
     }
 }
 
+#[derive(Debug)]
 /// An iterator type for images to iterate through pixels and mutate them
 ///
 /// The actual item type (e.g. full object or reference) depends on the implementation.

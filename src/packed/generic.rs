@@ -138,6 +138,7 @@ macro_rules! impl_IteratorMut {
     };
 }
 
+#[derive(Debug, Clone, Copy)]
 /// Image view parametrized by its pixel type
 pub struct ImageView<'a, T: Pixel> {
     raw: &'a [T::T],
@@ -226,6 +227,8 @@ impl<'a, T: Pixel> IntoIterator for &'a ImageView<'a, T> {
     }
 }
 
+#[derive(Debug)]
+/// Mutable image view
 pub struct ImageViewMut<'a, T: Pixel> {
     raw: &'a mut [T::T],
     width: u32,
@@ -343,6 +346,8 @@ impl<'a, T: Pixel> IntoIterator for &'a mut ImageViewMut<'a, T> {
     }
 }
 
+#[derive(Debug, Clone)]
+/// Image buffer holding the pixel data
 pub struct ImageBuffer<T: Pixel> {
     raw: Vec<T::T>,
     width: u32,
@@ -512,6 +517,7 @@ impl<'a, T: Pixel> From<&ImageViewMut<'a, T>> for ImageBuffer<T> {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
 /// Sub image view into another image
 pub struct SubImageView<'a, I: GenericImageView<'a>> {
     parent: &'a I,
