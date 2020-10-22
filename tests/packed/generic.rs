@@ -1,6 +1,15 @@
 macro_rules! test_GenericImageView {
     ($id:ident) => {
         #[test]
+        fn as_slice() {
+            let mut mem = vec![1, 2, 3];
+            let view = $id::<Rgb<u8>>::new(&mut mem, 1, 1).unwrap();
+            assert_eq!(view.as_slice()[0], 1);
+            assert_eq!(view.as_slice()[1], 2);
+            assert_eq!(view.as_slice()[2], 3);
+        }
+
+        #[test]
         fn width() {
             let mut mem = vec![0; 27];
             let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
@@ -98,6 +107,15 @@ macro_rules! test_GenericImageView {
 macro_rules! test_GenericImage {
     ($id:ident) => {
         #[test]
+        fn as_mut_slice() {
+            let mut mem = vec![1, 2, 3];
+            let mut view = $id::<Rgb<u8>>::new(&mut mem, 1, 1).unwrap();
+            assert_eq!(view.as_mut_slice()[0], 1);
+            assert_eq!(view.as_mut_slice()[1], 2);
+            assert_eq!(view.as_mut_slice()[2], 3);
+        }
+
+        #[test]
         fn index_mut() {
             let mut mem = vec![0; 27];
             let mut buf = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
@@ -158,6 +176,18 @@ mod buffer {
     use ffimage::color::*;
     use ffimage::core::GenericImageView;
     use ffimage::packed::generic::{ImageBuffer, ImageView};
+
+    #[test]
+    fn into_vec() {
+        let mut buf = ImageBuffer::<Rgb<u8>>::new(1, 1);
+        buf[0][0][0] = 1;
+        buf[0][0][1] = 2;
+        buf[0][0][2] = 3;
+        let vec = buf.into_vec();
+        assert_eq!(vec[0], 1);
+        assert_eq!(vec[1], 2);
+        assert_eq!(vec[2], 3);
+    }
 
     #[test]
     fn from() {

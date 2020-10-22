@@ -2,6 +2,16 @@ mod view {
     use ffimage::packed::dynamic::ImageView;
 
     #[test]
+    fn as_slice() {
+        let mem: Vec<u8> = vec![1, 2, 3];
+        let view = ImageView::new(&mem, 1, 1).unwrap();
+        let slice = view.raw().as_slice::<u8>().unwrap();
+        assert_eq!(slice[0], 1);
+        assert_eq!(slice[1], 2);
+        assert_eq!(slice[2], 3);
+    }
+
+    #[test]
     fn new() {
         let mem: Vec<u8> = vec![0; 27];
         let view = ImageView::new(&mem, 3, 3).unwrap();
@@ -32,6 +42,22 @@ mod view {
 mod buffer {
     use core::convert::From;
     use ffimage::packed::dynamic::{ImageBuffer, ImageView, StorageType};
+
+    #[test]
+    fn into_vec() {
+        let mut buf = ImageBuffer::new(1, 1, 3 /* channels */, StorageType::U8);
+        {
+            let slice = buf.raw_mut().as_mut_slice::<u8>().unwrap();
+            slice[0] = 1;
+            slice[1] = 2;
+            slice[2] = 3;
+        }
+
+        let vec = buf.into_buf().into_vec::<u8>().unwrap();
+        assert_eq!(vec[0], 1);
+        assert_eq!(vec[1], 2);
+        assert_eq!(vec[2], 3);
+    }
 
     #[test]
     fn new() {

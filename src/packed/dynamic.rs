@@ -184,6 +184,38 @@ impl MemoryBuffer {
         }
     }
 
+    /// Returns the pixel backing storage
+    pub fn into_vec<T: 'static>(self) -> Option<Vec<T>> {
+        match self {
+            MemoryBuffer::U8(mut buf) => {
+                if TypeId::of::<T>() == TypeId::of::<u8>() {
+                    let length = buf.len();
+                    let capacity = buf.capacity();
+                    let ptr = buf.as_mut_ptr() as *mut T;
+
+                    mem::forget(buf);
+                    let vec = unsafe { Vec::from_raw_parts(ptr, length, capacity) };
+                    Some(vec)
+                } else {
+                    None
+                }
+            }
+            MemoryBuffer::U16(mut buf) => {
+                if TypeId::of::<T>() == TypeId::of::<u16>() {
+                    let length = buf.len();
+                    let capacity = buf.capacity();
+                    let ptr = buf.as_mut_ptr() as *mut T;
+
+                    mem::forget(buf);
+                    let vec = unsafe { Vec::from_raw_parts(ptr, length, capacity) };
+                    Some(vec)
+                } else {
+                    None
+                }
+            }
+        }
+    }
+
     /// Returns the number of elements in the buffer
     pub fn len(&self) -> usize {
         match &self {
@@ -526,6 +558,11 @@ impl ImageBuffer {
                 view.unwrap()
             }
         }
+    }
+
+    /// Returns the pixel backing storage
+    pub fn into_buf(self) -> MemoryBuffer {
+        self.raw
     }
 }
 

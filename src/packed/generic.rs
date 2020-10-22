@@ -190,8 +190,19 @@ impl<'a, T: Pixel> ImageView<'a, T> {
         })
     }
 
+    #[deprecated(since = "0.8.2", note = "Please use the as_slice() function instead")]
     pub fn raw(&self) -> &[T::T] {
         &self.raw
+    }
+
+    /// Returns a view to the pixel backing storage
+    pub fn as_slice(&self) -> &[T::T] {
+        &self.raw
+    }
+
+    /// Returns a mutable view to the pixel backing storage
+    pub fn as_mut_slice(&mut self) -> &[T::T] {
+        &mut self.raw
     }
 
     /// Returns the length of one pixel row in bytes
@@ -284,11 +295,26 @@ impl<'a, T: Pixel> ImageViewMut<'a, T> {
         })
     }
 
+    #[deprecated(since = "0.8.2", note = "Please use the as_slice() function instead")]
     pub fn raw(&self) -> &[T::T] {
         &self.raw
     }
 
+    #[deprecated(
+        since = "0.8.2",
+        note = "Please use the as_mut_slice() function instead"
+    )]
     pub fn raw_mut(&mut self) -> &mut [T::T] {
+        &mut self.raw
+    }
+
+    /// Returns a view to the pixel backing storage
+    pub fn as_slice(&self) -> &[T::T] {
+        &self.raw
+    }
+
+    /// Returns a mutable view to the pixel backing storage
+    pub fn as_mut_slice(&mut self) -> &[T::T] {
         &mut self.raw
     }
 
@@ -435,12 +461,32 @@ impl<T: Pixel> ImageBuffer<T> {
         })
     }
 
+    #[deprecated(since = "0.8.2", note = "Please use the as_slice() function instead")]
     pub fn raw(&self) -> &[T::T] {
         &self.raw
     }
 
+    #[deprecated(
+        since = "0.8.2",
+        note = "Please use the as_mut_slice() function instead"
+    )]
     pub fn raw_mut(&mut self) -> &mut [T::T] {
         &mut self.raw
+    }
+
+    /// Returns a view to the pixel backing storage
+    pub fn as_slice(&self) -> &[T::T] {
+        &self.raw
+    }
+
+    /// Returns a mutable view to the pixel backing storage
+    pub fn as_mut_slice(&mut self) -> &[T::T] {
+        &mut self.raw
+    }
+
+    /// Returns the pixel backing storage
+    pub fn into_vec(self) -> Vec<T::T> {
+        self.raw
     }
 
     /// Returns the length of one pixel row in bytes
@@ -506,14 +552,14 @@ impl<T: Pixel> Into<Vec<T::T>> for ImageBuffer<T> {
 impl<'a, T: Pixel> From<&ImageView<'a, T>> for ImageBuffer<T> {
     fn from(view: &ImageView<'a, T>) -> Self {
         // unwrap() is safe here because the view itself was checked when it was created
-        ImageBuffer::from_raw(view.width(), view.height(), view.raw().to_vec()).unwrap()
+        ImageBuffer::from_raw(view.width(), view.height(), view.as_slice().to_vec()).unwrap()
     }
 }
 
 impl<'a, T: Pixel> From<&ImageViewMut<'a, T>> for ImageBuffer<T> {
     fn from(view: &ImageViewMut<'a, T>) -> Self {
         // unwrap() is safe here because the view itself was checked when it was created
-        ImageBuffer::from_raw(view.width(), view.height(), view.raw().to_vec()).unwrap()
+        ImageBuffer::from_raw(view.width(), view.height(), view.as_slice().to_vec()).unwrap()
     }
 }
 
