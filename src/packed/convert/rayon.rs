@@ -2,7 +2,8 @@ use std::cell::UnsafeCell;
 
 use rayon::prelude::*;
 
-use crate::core::traits::{GenericImageView, Pixel, Convert, ConvertSlice};
+use crate::core::traits::{GenericImageView, Pixel, Convert};
+use crate::packed::traits::ConvertSlice;
 use crate::packed::generic::{ImageView, ImageViewMut, ImageBuffer};
 
 // This is a private helper struct to share buffers between threads in a lock free manner where we

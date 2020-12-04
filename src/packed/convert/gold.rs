@@ -1,4 +1,5 @@
-use crate::core::traits::{GenericImageView, Pixel, Convert, ConvertSlice};
+use crate::core::traits::{GenericImageView, Pixel, Convert};
+use crate::packed::traits::ConvertSlice;
 use crate::packed::generic::{ImageBuffer, ImageView, ImageViewMut};
 
 macro_rules! impl_Convert {
