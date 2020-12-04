@@ -29,8 +29,7 @@ fn main() {
     let mut buf = PackedImageBuffer::<Gray<u8>>::new(0, 0);
 
     // Perform the actual conversion.
-    // This cannot fail since the target buffer is resizable.
     // If the pixel conversion between source and target image is not defined, the compiler will
     // refuse to compile this line.
-    generic_view.try_convert(&mut buf).unwrap();
+    generic_view.convert(&mut buf);
 }

@@ -7,7 +7,7 @@ pub mod prelude {
     pub use crate::{
         color::*,
         core::iter::{PixelIter, PixelIterMut},
-        core::traits::{GenericImage, GenericImageView, Macropixel, Pixel, TryConvert},
+        core::traits::{Convert, GenericImage, GenericImageView, Macropixel, Pixel},
         packed::dynamic,
         packed::generic,
         packed::generic::{

@@ -2,7 +2,7 @@ use std::cell::UnsafeCell;
 
 use rayon::prelude::*;
 
-use crate::core::traits::{GenericImageView, Pixel, TryConvert, TryConvertSlice};
+use crate::core::traits::{GenericImageView, Pixel, Convert, ConvertSlice};
 use crate::packed::generic::{ImageView, ImageViewMut, ImageBuffer};
 
 // This is a private helper struct to share buffers between threads in a lock free manner where we
@@ -28,110 +28,102 @@ impl<T> UnsafeShared<T> {
 unsafe impl<T: ?Sized + Send> Send for UnsafeShared<T> {}
 unsafe impl<T: ?Sized + Send> Sync for UnsafeShared<T> {}
 
-macro_rules! impl_TryConvert {
+macro_rules! impl_Convert {
     () => {
-        type Error = ();
-
-        fn try_convert(&self, output: &mut ImageBuffer<DP>) -> Result<(), Self::Error> {
+        fn convert(&self, output: &mut ImageBuffer<DP>) {
             if output.width() != self.width() || output.height() != self.height() {
                 *output = ImageBuffer::new(self.width(), self.height());
             }
 
+            let row_count = output.height();
+
             // It is safe to use the shared, lock free wrapper here because each thread
             // accesses a distinct pixel row, so pixel access is never interleaved.
             let output = UnsafeShared::new(output);
 
-            (0..self.height()).into_par_iter().for_each(|i| {
+            (0..row_count).into_par_iter().for_each(|i| {
                 let output = unsafe { output.get() };
                 let row_in = &self[i as usize];
                 let row_out = &mut output[i as usize];
-
-                // The convert operation can only fail if the target row cannot hold enough pixels,
-                // which is impossible because we already recreated the output buffer in that case.
-                SP::try_convert(row_in, row_out).unwrap();
+                SP::convert(row_in, row_out);
             });
-
-            Ok(())
         }
     };
 }
 
-macro_rules! impl_TryConvertFlat {
+macro_rules! impl_ConvertFlat {
     () => {
-        type Error = ();
-
-        fn try_convert(&self, output: &mut ImageViewMut<'b, DP>) -> Result<(), Self::Error> {
-            if output.width() != self.width() || output.height() != self.height() {
-                return Err(());
-            }
+        fn convert(&self, output: &mut ImageViewMut<'b, DP>) {
+            let row_count = if output.height() < self.height() {
+                output.height()
+            } else {
+                self.height()
+            };
 
             // It is safe to use the shared, lock free wrapper here because each thread
             // accesses a distinct pixel row, so pixel access is never interleaved.
             let output = UnsafeShared::new(output);
 
-            (0..self.height()).into_par_iter().for_each(|i| {
+            (0..row_count).into_par_iter().for_each(|i| {
                 let output = unsafe { output.get() };
                 let row_in = &self[i as usize];
                 let row_out = &mut output[i as usize];
-                // TODO: marshal error
-                SP::try_convert(row_in, row_out).unwrap();
+                SP::convert(row_in, row_out);
             });
-
-            Ok(())
         }
     };
 }
 
-impl<'a, SP, DP> TryConvert<ImageBuffer<DP>> for ImageView<'a, SP>
+impl<'a, SP, DP> Convert<ImageBuffer<DP>> for ImageView<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
-    SP: TryConvertSlice<DP>,
+    SP: ConvertSlice<DP>,
 {
-    impl_TryConvert!();
+    impl_Convert!();
 }
 
-impl<'a, SP, DP> TryConvert<ImageBuffer<DP>> for ImageViewMut<'a, SP>
+impl<'a, SP, DP> Convert<ImageBuffer<DP>> for ImageViewMut<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
-    SP: TryConvertSlice<DP>,
+    SP: ConvertSlice<DP>,
 {
-    impl_TryConvert!();
+    impl_Convert!();
 }
 
-impl<SP, DP> TryConvert<ImageBuffer<DP>> for ImageBuffer<SP>
+impl<SP, DP> Convert<ImageBuffer<DP>> for ImageBuffer<SP>
 where
     SP: Pixel,
     DP: Pixel,
-    SP: TryConvertSlice<DP>,
+    SP: ConvertSlice<DP>,
 {
-    impl_TryConvert!();
+    impl_Convert!();
 }
 
-impl<'a, 'b, SP, DP> TryConvert<ImageViewMut<'b, DP>> for ImageView<'a, SP>
+impl<'a, 'b, SP, DP> Convert<ImageViewMut<'b, DP>> for ImageView<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
-    SP: TryConvertSlice<DP>,
+    SP: ConvertSlice<DP>,
 {
-    impl_TryConvertFlat!();
+    impl_ConvertFlat!();
 }
 
-impl<'a, 'b, SP, DP> TryConvert<ImageViewMut<'b, DP>> for ImageViewMut<'a, SP>
+impl<'a, 'b, SP, DP> Convert<ImageViewMut<'b, DP>> for ImageViewMut<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
-    SP: TryConvertSlice<DP>,
+    SP: ConvertSlice<DP>,
 {
-    impl_TryConvertFlat!();
+    impl_ConvertFlat!();
 }
 
-impl<'b, SP, DP> TryConvert<ImageViewMut<'b, DP>> for ImageBuffer<SP>
+impl<'b, SP, DP> Convert<ImageViewMut<'b, DP>> for ImageBuffer<SP>
 where
     SP: Pixel,
     DP: Pixel,
-    SP: TryConvertSlice<DP>,
+    SP: ConvertSlice<DP>,
 {
-    impl_TryConvertFlat!();
+    impl_ConvertFlat!();
 }

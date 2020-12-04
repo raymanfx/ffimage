@@ -1,5 +1,5 @@
 pub mod traits;
-pub use traits::{GenericImage, GenericImageView, TryConvert, TryConvertSlice};
+pub use traits::{Convert, ConvertSlice, GenericImage, GenericImageView};
 pub use traits::{Macropixel, Pixel, StorageType};
 
 pub mod pixel;

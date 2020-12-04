@@ -1,4 +1,4 @@
-use std::{array, fmt, mem, ops::IndexMut};
+use std::{array, mem, ops::IndexMut};
 
 use num_traits::Num;
 
@@ -70,17 +70,13 @@ pub trait GenericImage<'a>: GenericImageView<'a> {
 }
 
 /// Convert between images
-pub trait TryConvert<B> {
-    type Error: fmt::Debug;
-
+pub trait Convert<B> {
     /// Converts the buffer into another, possibly with a different format
-    fn try_convert(&self, output: &mut B) -> Result<(), Self::Error>;
+    fn convert(&self, output: &mut B);
 }
 
 /// Convert into a slice of types
-pub trait TryConvertSlice<DP: Pixel>: Sized {
-    type Error: fmt::Debug;
-
+pub trait ConvertSlice<DP: Pixel>: Sized {
     /// Converts the buffer into another, possibly with a different format
-    fn try_convert(input: &[Self], output: &mut [DP]) -> Result<(), Self::Error>;
+    fn convert(input: &[Self], output: &mut [DP]);
 }

@@ -1,104 +1,94 @@
-use crate::core::traits::{GenericImageView, Pixel, TryConvert, TryConvertSlice};
+use crate::core::traits::{GenericImageView, Pixel, Convert, ConvertSlice};
 use crate::packed::generic::{ImageBuffer, ImageView, ImageViewMut};
 
-macro_rules! impl_TryConvert {
+macro_rules! impl_Convert {
     () => {
-        type Error = ();
-
-        fn try_convert(&self, output: &mut ImageBuffer<DP>) -> Result<(), Self::Error> {
+        fn convert(&self, output: &mut ImageBuffer<DP>) {
             if output.width() != self.width() || output.height() != self.height() {
                 *output = ImageBuffer::new(self.width(), self.height());
             }
 
+            let row_count = output.height();
+
             // iterate over the source pixels and convert them
-            for i in 0..self.height() {
+            for i in 0..row_count {
                 let row_in = &self[i as usize];
                 let row_out = &mut output[i as usize];
-
-                // The convert operation can only fail if the target row cannot hold enough pixels,
-                // which is impossible because we already recreated the output buffer in that case.
-                SP::try_convert(row_in, row_out).unwrap();
+                SP::convert(row_in, row_out);
             }
-
-            Ok(())
         }
     };
 }
 
-macro_rules! impl_TryConvertFlat {
+macro_rules! impl_ConvertFlat {
     () => {
-        type Error = ();
-
-        fn try_convert(&self, output: &mut ImageViewMut<DP>) -> Result<(), Self::Error> {
-            if output.width() != self.width() || output.height() != self.height() {
-                return Err(());
-            }
+        fn convert(&self, output: &mut ImageViewMut<DP>) {
+            let row_count = if output.height() < self.height() {
+                output.height()
+            } else {
+                self.height()
+            };
 
             // iterate over the source pixels and convert them
-            for i in 0..self.height() {
+            for i in 0..row_count {
                 let row_in = &self[i as usize];
                 let row_out = &mut output[i as usize];
-                let res = SP::try_convert(row_in, row_out);
-                if res.is_err() {
-                    return Err(())
-                }
+                SP::convert(row_in, row_out);
             }
-
-            Ok(())
         }
     };
 }
 
-impl<'a, SP, DP> TryConvert<ImageBuffer<DP>> for ImageView<'a, SP>
+impl<'a, SP, DP> Convert<ImageBuffer<DP>> for ImageView<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
-    SP: TryConvertSlice<DP>,
+    SP: ConvertSlice<DP>,
 {
-    impl_TryConvert!();
+    impl_Convert!();
 }
 
-impl<'a, SP, DP> TryConvert<ImageBuffer<DP>> for ImageViewMut<'a, SP>
+impl<'a, SP, DP> Convert<ImageBuffer<DP>> for ImageViewMut<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
-    SP: TryConvertSlice<DP>,
+    SP: ConvertSlice<DP>,
 {
-    impl_TryConvert!();
+    impl_Convert!();
 }
 
-impl<SP, DP> TryConvert<ImageBuffer<DP>> for ImageBuffer<SP>
+impl<SP, DP> Convert<ImageBuffer<DP>> for ImageBuffer<SP>
 where
     SP: Pixel,
     DP: Pixel,
-    SP: TryConvertSlice<DP>,
+    SP: ConvertSlice<DP>,
 {
-    impl_TryConvert!();
+    impl_Convert!();
 }
 
-impl<'a, SP, DP> TryConvert<ImageViewMut<'a, DP>> for ImageView<'a, SP>
+impl<'a, SP, DP> Convert<ImageViewMut<'a, DP>> for ImageView<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
-    SP: TryConvertSlice<DP>,
+    SP: ConvertSlice<DP>,
 {
-    impl_TryConvertFlat!();
+    impl_ConvertFlat!();
 }
 
-impl<'a, SP, DP> TryConvert<ImageViewMut<'a, DP>> for ImageViewMut<'a, SP>
+impl<'a, SP, DP> Convert<ImageViewMut<'a, DP>> for ImageViewMut<'a, SP>
 where
     SP: Pixel,
     DP: Pixel,
-    SP: TryConvertSlice<DP>,
+    SP: ConvertSlice<DP>,
 {
-    impl_TryConvertFlat!();
+    impl_ConvertFlat!();
 }
 
-impl<'a, SP, DP> TryConvert<ImageViewMut<'a, DP>> for ImageBuffer<SP>
+impl<'a, SP, DP> Convert<ImageViewMut<'a, DP>> for ImageBuffer<SP>
 where
     SP: Pixel,
     DP: Pixel,
-    SP: TryConvertSlice<DP>,
+    SP: ConvertSlice<DP>,
 {
-    impl_TryConvertFlat!();
+    impl_ConvertFlat!();
 }

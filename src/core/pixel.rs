@@ -1,4 +1,4 @@
-use crate::core::traits::{Pixel, TryConvertSlice};
+use crate::core::traits::{ConvertSlice, Pixel};
 
 #[macro_export]
 /// Implement the Pixel trait for a pixel
@@ -145,18 +145,11 @@ macro_rules! create_macropixel {
 // rows as well. This obviously does not work for macropixels, where one pixel may transform into
 // several, so you need to implement the trait yourself for those types.
 
-impl<SP: Pixel, DP: Pixel + From<SP>> TryConvertSlice<DP> for SP {
-    type Error = ();
-
-    fn try_convert(input: &[SP], output: &mut [DP]) -> Result<(), Self::Error> {
-        if input.len() != output.len() {
-            return Err(());
+impl<SP: Pixel, DP: Pixel + From<SP>> ConvertSlice<DP> for SP {
+    fn convert(input: &[SP], output: &mut [DP]) {
+        let pixels = input.iter().zip(output.iter_mut());
+        for (pix_in, pix_out) in pixels {
+            *pix_out = DP::from(*pix_in);
         }
-
-        for i in 0..input.len() {
-            output[i] = DP::from(input[i]);
-        }
-
-        Ok(())
     }
 }
