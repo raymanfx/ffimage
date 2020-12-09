@@ -1,3 +1,4 @@
+pub mod iter;
 pub mod traits;
 
 pub mod generic;

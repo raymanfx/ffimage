@@ -1,95 +1,48 @@
+use std::ops::Index;
+
 use crate::core::traits::{GenericImageView, Pixel, Convert};
-use crate::packed::traits::ConvertSlice;
-use crate::packed::generic::{ImageBuffer, ImageView, ImageViewMut};
+use crate::packed::traits::ConvertPixels;
+use crate::packed::generic::{ImageBuffer, ImageViewMut};
 
-macro_rules! impl_Convert {
-    () => {
-        fn convert(&self, output: &mut ImageBuffer<DP>) {
-            if output.width() != self.width() || output.height() != self.height() {
-                *output = ImageBuffer::new(self.width(), self.height());
-            }
+impl<'a, 'b, DP, I> Convert<ImageViewMut<'b, DP>> for I
+where
+DP: Pixel,
+I: GenericImageView<'a> + Index<usize>,
+for <'c> &'c mut <ImageBuffer<DP> as Index<usize>>::Output: IntoIterator,
+for <'c> &'c <Self as Index<usize>>::Output: ConvertPixels<&'c mut <ImageBuffer<DP> as Index<usize>>::Output>,
+{
+    fn convert(&self, output: &mut ImageViewMut<'b, DP>) {
+        // how many rows can we convert?
+        let row_count = if output.height() > self.height() {
+            self.height()
+        } else {
+            output.height()
+        };
 
-            let row_count = output.height();
+        (0..row_count as usize).into_iter().for_each(|i| {
+            let input = &self[i];
+            let output = &mut output[i];
+            input.convert(output);
+        });
+    }
+}
 
-            // iterate over the source pixels and convert them
-            for i in 0..row_count {
-                let row_in = &self[i as usize];
-                let row_out = &mut output[i as usize];
-                SP::convert(row_in, row_out);
-            }
+impl<'a, DP, I> Convert<ImageBuffer<DP>> for I
+where
+DP: Pixel,
+I: GenericImageView<'a> + Index<usize>,
+for <'b> &'b mut <ImageBuffer<DP> as Index<usize>>::Output: IntoIterator,
+for <'b> &'b <Self as Index<usize>>::Output: ConvertPixels<&'b mut <ImageBuffer<DP> as Index<usize>>::Output>,
+{
+    fn convert(&self, output: &mut ImageBuffer<DP>) {
+        if output.width() != self.width() || output.height() != self.height() {
+            *output = ImageBuffer::new(self.width(), self.height());
         }
-    };
-}
 
-macro_rules! impl_ConvertFlat {
-    () => {
-        fn convert(&self, output: &mut ImageViewMut<DP>) {
-            let row_count = if output.height() < self.height() {
-                output.height()
-            } else {
-                self.height()
-            };
-
-            // iterate over the source pixels and convert them
-            for i in 0..row_count {
-                let row_in = &self[i as usize];
-                let row_out = &mut output[i as usize];
-                SP::convert(row_in, row_out);
-            }
-        }
-    };
-}
-
-impl<'a, SP, DP> Convert<ImageBuffer<DP>> for ImageView<'a, SP>
-where
-    SP: Pixel,
-    DP: Pixel,
-    SP: ConvertSlice<DP>,
-{
-    impl_Convert!();
-}
-
-impl<'a, SP, DP> Convert<ImageBuffer<DP>> for ImageViewMut<'a, SP>
-where
-    SP: Pixel,
-    DP: Pixel,
-    SP: ConvertSlice<DP>,
-{
-    impl_Convert!();
-}
-
-impl<SP, DP> Convert<ImageBuffer<DP>> for ImageBuffer<SP>
-where
-    SP: Pixel,
-    DP: Pixel,
-    SP: ConvertSlice<DP>,
-{
-    impl_Convert!();
-}
-
-impl<'a, SP, DP> Convert<ImageViewMut<'a, DP>> for ImageView<'a, SP>
-where
-    SP: Pixel,
-    DP: Pixel,
-    SP: ConvertSlice<DP>,
-{
-    impl_ConvertFlat!();
-}
-
-impl<'a, SP, DP> Convert<ImageViewMut<'a, DP>> for ImageViewMut<'a, SP>
-where
-    SP: Pixel,
-    DP: Pixel,
-    SP: ConvertSlice<DP>,
-{
-    impl_ConvertFlat!();
-}
-
-impl<'a, SP, DP> Convert<ImageViewMut<'a, DP>> for ImageBuffer<SP>
-where
-    SP: Pixel,
-    DP: Pixel,
-    SP: ConvertSlice<DP>,
-{
-    impl_ConvertFlat!();
+        (0..self.height() as usize).into_iter().for_each(|i| {
+            let input = &self[i];
+            let output = &mut output[i];
+            input.convert(output);
+        });
+    }
 }
