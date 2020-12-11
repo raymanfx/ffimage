@@ -6,9 +6,13 @@ use crate::packed::traits::ConvertSlice;
 // rows as well. This obviously does not work for macropixels, where one pixel may transform into
 // several, so you need to implement the trait yourself for those types.
 
-impl<SP: Pixel, DP: Pixel + From<SP>> ConvertSlice<DP> for SP {
-    fn convert(input: &[SP], output: &mut [DP]) {
-        let pixels = input.iter().zip(output.iter_mut());
+impl<SP, DP> ConvertSlice<DP> for SP
+where
+    SP: Pixel,
+    DP: Pixel + From<SP>,
+{
+    fn convert<IT: AsRef<[Self]>, OT: AsMut<[DP]>>(input: IT, mut output: OT) {
+        let pixels = input.as_ref().into_iter().zip(output.as_mut().into_iter());
         for (pix_in, pix_out) in pixels {
             *pix_out = DP::from(*pix_in);
         }
