@@ -25,9 +25,6 @@ pub trait Pixel: Sized + Copy + Send + Sync + IndexMut<usize> {
     fn len() -> usize {
         Self::channels() as usize * mem::size_of::<Self::T>()
     }
-
-    /// Number of image pixels for this pixel
-    fn subpixels() -> u8;
 }
 
 /// Macropixel container

@@ -48,17 +48,13 @@ macro_rules! impl_Index {
 
         fn index(&self, index: usize) -> &Self::Output {
             // determine the offset in the raw buffer
-            let pixels_per_row = self.width() / T::subpixels() as u32;
+            let width = self.width();
             let stride_elems = self.stride() / mem::size_of::<T::T>();
             let off: usize = index * stride_elems;
             let slice = &self.raw[off..off + stride_elems];
             let (head, body, _tail) = unsafe { slice.align_to::<T>() };
             assert!(head.is_empty(), "raw data is not aligned");
-            assert_eq!(
-                body.len(),
-                pixels_per_row as usize,
-                "invalid number of row items"
-            );
+            assert_eq!(body.len(), width as usize, "invalid number of row items");
 
             body
         }
@@ -69,17 +65,13 @@ macro_rules! impl_IndexMut {
     ($id:ident) => {
         fn index_mut(&mut self, index: usize) -> &mut Self::Output {
             // determine the offset in the raw buffer
-            let pixels_per_row = self.width() / T::subpixels() as u32;
+            let width = self.width();
             let stride_elems = self.stride() / mem::size_of::<T::T>();
             let off: usize = index * stride_elems;
             let slice = &mut self.raw[off..off + stride_elems];
             let (head, body, _tail) = unsafe { slice.align_to_mut::<T>() };
             assert!(head.is_empty(), "raw data is not aligned");
-            assert_eq!(
-                body.len(),
-                pixels_per_row as usize,
-                "invalid number of row items"
-            );
+            assert_eq!(body.len(), width as usize, "invalid number of row items");
 
             body
         }
@@ -175,8 +167,7 @@ impl<'a, T: Pixel> ImageView<'a, T> {
         }
 
         // validate bytes per line
-        let pixels_per_row = width / T::subpixels() as u32;
-        let min_stride = pixels_per_row as usize * T::channels() as usize * mem::size_of::<T::T>();
+        let min_stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
         let stride = raw.len() * mem::size_of::<T::T>() / height as usize;
         if stride < min_stride {
             return None;
@@ -280,8 +271,7 @@ impl<'a, T: Pixel> ImageViewMut<'a, T> {
         }
 
         // validate bytes per line
-        let pixels_per_row = width / T::subpixels() as u32;
-        let min_stride = pixels_per_row as usize * T::channels() as usize * mem::size_of::<T::T>();
+        let min_stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
         let stride = raw.len() * mem::size_of::<T::T>() / height as usize;
         if stride < min_stride {
             return None;
@@ -405,11 +395,10 @@ impl<T: Pixel> ImageBuffer<T> {
     /// buf.set_pixel(0, 0, &pix).unwrap();
     /// ```
     pub fn new(width: u32, height: u32) -> Self {
-        let pixels_per_row = width / T::subpixels() as u32;
-        let stride = pixels_per_row as usize * T::channels() as usize * mem::size_of::<T::T>();
+        let stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
 
         ImageBuffer {
-            raw: vec![T::T::zero(); height as usize * pixels_per_row as usize * T::len()],
+            raw: vec![T::T::zero(); height as usize * width as usize * T::len()],
             width,
             height,
             stride,
@@ -446,8 +435,7 @@ impl<T: Pixel> ImageBuffer<T> {
         }
 
         // validate bytes per line
-        let pixels_per_row = width / T::subpixels() as u32;
-        let min_stride = pixels_per_row as usize * T::channels() as usize * mem::size_of::<T::T>();
+        let min_stride = width as usize * T::channels() as usize * mem::size_of::<T::T>();
         let stride = raw.len() * mem::size_of::<T::T>() / height as usize;
         if stride < min_stride {
             return None;
