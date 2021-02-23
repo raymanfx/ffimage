@@ -74,7 +74,7 @@ where
 {
     fn convert(&self, output: &mut Image<DP, Vec<DP::T>>) {
         if output.width() != self.width() || output.height() != self.height() {
-            *output = Image::new(self.height(), self.width(), DP::T::default());
+            *output = Image::new(self.width(), self.height(), DP::T::default());
         }
 
         let row_count = output.height();

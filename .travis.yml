@@ -21,12 +21,12 @@ jobs:
   include:
     - name: check
       script:
-        - cargo check --no-default-features
-        - cargo check --features rayon
+        - cargo check --manifest-path ffimage/Cargo.toml --no-default-features
+        - cargo check --manifest-path ffimage/Cargo.toml --features rayon
     - name: test
       script:
-        - cargo test --no-default-features
-        - cargo test --features rayon
+        - cargo test --manifest-path ffimage/Cargo.toml --no-default-features
+        - cargo test --manifest-path ffimage/Cargo.toml --features rayon
     - name: fmt
       before_script:
         - rustup component add rustfmt
