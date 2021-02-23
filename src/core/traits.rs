@@ -1,22 +1,9 @@
-use std::{array, mem, ops::IndexMut};
-
-use num_traits::Num;
-
-/// Pixel backing type
-pub trait StorageType: Num + Copy + Send + Sync {}
-
-impl<T: Num + Copy + Send + Sync> StorageType for T {}
+use std::{mem, ops::IndexMut};
 
 /// Generic pixel container
-pub trait Pixel: Sized + Copy + Send + Sync + IndexMut<usize> {
+pub trait Pixel: Sized + Copy + IndexMut<usize> {
     /// Type of the container elements
-    type T: StorageType;
-
-    /// Returns the channel value at the specified index
-    fn at(&self, index: usize) -> Self::T;
-
-    /// Convert a memory region into a pixel by copying the bytes
-    fn try_from(raw: &[Self::T]) -> Result<Self, array::TryFromSliceError>;
+    type T;
 
     /// Number of channels for this pixel
     fn channels() -> u8;

@@ -371,7 +371,10 @@ pub struct ImageBuffer<T: Pixel> {
     stride: usize,
 }
 
-impl<T: Pixel> ImageBuffer<T> {
+impl<T: Pixel> ImageBuffer<T>
+where
+    T::T: Copy + Zero,
+{
     /// Returns an image buffer with pixel accessors
     ///
     /// The backing memory is allocated by this struct. There is no padding added so only the
@@ -483,7 +486,10 @@ impl<T: Pixel> ImageBuffer<T> {
     }
 }
 
-impl<'a, T: Pixel + 'a> GenericImageView<'a> for ImageBuffer<T> {
+impl<'a, T: Pixel + 'a> GenericImageView<'a> for ImageBuffer<T>
+where
+    T::T: Copy + Zero,
+{
     impl_GenericImageView!(ImageBuffer);
 
     type SubImage = SubImageView<'a, Self>;
@@ -493,27 +499,45 @@ impl<'a, T: Pixel + 'a> GenericImageView<'a> for ImageBuffer<T> {
     }
 }
 
-impl<'a, T: Pixel + 'a> GenericImage<'a> for ImageBuffer<T> {
+impl<'a, T: Pixel + 'a> GenericImage<'a> for ImageBuffer<T>
+where
+    T::T: Copy + Zero,
+{
     impl_GenericImage!(ImageBuffer);
 }
 
-impl<T: Pixel> Index<usize> for ImageBuffer<T> {
+impl<T: Pixel> Index<usize> for ImageBuffer<T>
+where
+    T::T: Copy + Zero,
+{
     impl_Index!(ImageBuffer);
 }
 
-impl<T: Pixel> IndexMut<usize> for ImageBuffer<T> {
+impl<T: Pixel> IndexMut<usize> for ImageBuffer<T>
+where
+    T::T: Copy + Zero,
+{
     impl_IndexMut!(ImageBuffer);
 }
 
-impl<'a, T: Pixel> Iterator for PixelIter<'a, ImageBuffer<T>> {
+impl<'a, T: Pixel> Iterator for PixelIter<'a, ImageBuffer<T>>
+where
+    T::T: Copy + Zero,
+{
     impl_Iterator!(ImageBuffer);
 }
 
-impl<'a, T: Pixel> Iterator for PixelIterMut<'a, ImageBuffer<T>> {
+impl<'a, T: Pixel> Iterator for PixelIterMut<'a, ImageBuffer<T>>
+where
+    T::T: Copy + Zero,
+{
     impl_IteratorMut!(ImageBuffer);
 }
 
-impl<'a, T: Pixel> IntoIterator for &'a ImageBuffer<T> {
+impl<'a, T: Pixel> IntoIterator for &'a ImageBuffer<T>
+where
+    T::T: Copy + Zero,
+{
     type Item = &'a T;
     type IntoIter = PixelIter<'a, ImageBuffer<T>>;
 
@@ -522,7 +546,10 @@ impl<'a, T: Pixel> IntoIterator for &'a ImageBuffer<T> {
     }
 }
 
-impl<'a, T: Pixel> IntoIterator for &'a mut ImageBuffer<T> {
+impl<'a, T: Pixel> IntoIterator for &'a mut ImageBuffer<T>
+where
+    T::T: Copy + Zero,
+{
     type Item = &'a mut T;
     type IntoIter = PixelIterMut<'a, ImageBuffer<T>>;
 
@@ -537,14 +564,20 @@ impl<T: Pixel> Into<Vec<T::T>> for ImageBuffer<T> {
     }
 }
 
-impl<'a, T: Pixel> From<&ImageView<'a, T>> for ImageBuffer<T> {
+impl<'a, T: Pixel> From<&ImageView<'a, T>> for ImageBuffer<T>
+where
+    T::T: Copy + Zero,
+{
     fn from(view: &ImageView<'a, T>) -> Self {
         // unwrap() is safe here because the view itself was checked when it was created
         ImageBuffer::from_raw(view.width(), view.height(), view.as_slice().to_vec()).unwrap()
     }
 }
 
-impl<'a, T: Pixel> From<&ImageViewMut<'a, T>> for ImageBuffer<T> {
+impl<'a, T: Pixel> From<&ImageViewMut<'a, T>> for ImageBuffer<T>
+where
+    T::T: Copy + Zero,
+{
     fn from(view: &ImageViewMut<'a, T>) -> Self {
         // unwrap() is safe here because the view itself was checked when it was created
         ImageBuffer::from_raw(view.width(), view.height(), view.as_slice().to_vec()).unwrap()
@@ -636,7 +669,10 @@ impl<'a, T: Pixel> Index<usize> for SubImageView<'a, ImageViewMut<'a, T>> {
     }
 }
 
-impl<'a, T: Pixel> Index<usize> for SubImageView<'a, ImageBuffer<T>> {
+impl<'a, T: Pixel> Index<usize> for SubImageView<'a, ImageBuffer<T>>
+where
+    T::T: Copy + Zero,
+{
     type Output = [T];
 
     fn index(&self, index: usize) -> &Self::Output {

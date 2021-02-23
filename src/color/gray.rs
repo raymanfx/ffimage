@@ -1,18 +1,13 @@
-use std::array;
-use std::convert::TryFrom;
-
 use num_traits::{AsPrimitive, FromPrimitive};
 
 use crate::color::bgr::*;
 use crate::color::rgb::*;
-use crate::core::traits::{Pixel, StorageType};
+use crate::core::traits::Pixel;
 use crate::{create_pixel, define_pixel, impl_Pixel};
 
 macro_rules! impl_from_rgb_to_gray {
     ($src:ident, $dst:ident, $r:expr, $g:expr, $b:expr) => {
-        impl<I: StorageType + AsPrimitive<f32>, O: StorageType + FromPrimitive> From<$src<I>>
-            for $dst<O>
-        {
+        impl<I: AsPrimitive<f32>, O: FromPrimitive> From<$src<I>> for $dst<O> {
             fn from(pix: $src<I>) -> Self {
                 // rec601 luma
                 let y = O::from_f32(
@@ -38,22 +33,14 @@ mod tests {
     use super::*;
 
     #[test]
-    fn at() {
-        let pix: Gray<u8> = Gray { 0: [255; 1] };
-
-        assert_eq!(pix.at(0), 255);
-    }
-
-    #[test]
-    fn try_from() {
-        let mem = vec![255; 1];
-        let pix: Gray<u8> = Pixel::try_from(&mem).unwrap();
-
-        assert_eq!(pix.at(0), 255);
-    }
-
-    #[test]
     fn channels() {
         assert_eq!(Gray::<u8>::channels(), 1);
+    }
+
+    #[test]
+    fn index_mut() {
+        let pix: Gray<u8> = Gray { 0: [1] };
+
+        assert_eq!(pix[0], 1);
     }
 }

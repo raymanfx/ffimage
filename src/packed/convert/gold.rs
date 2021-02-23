@@ -1,5 +1,7 @@
 use std::ops::Index;
 
+use num_traits::identities::Zero;
+
 use crate::core::traits::{GenericImageView, Pixel, Convert};
 use crate::packed::traits::ConvertSlice;
 use crate::packed::generic::{ImageBuffer, ImageViewMut};
@@ -7,6 +9,7 @@ use crate::packed::generic::{ImageBuffer, ImageViewMut};
 impl <'a, 'b, DP, I> Convert<ImageViewMut<'b, DP>> for I
 where
     DP: Pixel,
+    DP::T: Copy + Zero,
     I: GenericImageView<'a> + Index<usize> + Sync,
     <I as Index<usize>>::Output: Index<usize>,
     <I as Index<usize>>::Output: AsRef<[<<I as Index<usize>>::Output as Index<usize>>::Output]>,
@@ -31,6 +34,7 @@ where
 impl <'a, DP, I> Convert<ImageBuffer<DP>> for I
 where
     DP: Pixel,
+    DP::T: Copy + Zero,
     I: GenericImageView<'a> + Index<usize> + Sync,
     <I as Index<usize>>::Output: Index<usize>,
     <I as Index<usize>>::Output: AsRef<[<<I as Index<usize>>::Output as Index<usize>>::Output]>,

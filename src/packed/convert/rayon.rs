@@ -1,6 +1,8 @@
 use std::cell::UnsafeCell;
 use std::ops::Index;
 
+use num_traits::identities::Zero;
+
 use rayon::prelude::*;
 
 use crate::core::traits::{GenericImageView, Pixel, Convert};
@@ -33,6 +35,7 @@ unsafe impl<T: ?Sized + Send> Sync for UnsafeShared<T> {}
 impl <'a, 'b, DP, I> Convert<ImageViewMut<'b, DP>> for I
 where
     DP: Pixel,
+    DP::T: Send,
     I: GenericImageView<'a> + Index<usize> + Sync,
     <I as Index<usize>>::Output: Index<usize>,
     <I as Index<usize>>::Output: AsRef<[<<I as Index<usize>>::Output as Index<usize>>::Output]>,
@@ -62,6 +65,7 @@ where
 impl <'a, DP, I> Convert<ImageBuffer<DP>> for I
 where
     DP: Pixel,
+    DP::T: Copy + Send + Zero,
     I: GenericImageView<'a> + Index<usize> + Sync,
     <I as Index<usize>>::Output: Index<usize>,
     <I as Index<usize>>::Output: AsRef<[<<I as Index<usize>>::Output as Index<usize>>::Output]>,

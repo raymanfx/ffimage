@@ -2,26 +2,15 @@
 /// Implement the Pixel trait for a pixel
 macro_rules! impl_Pixel {
     ($name:ident, $channels:expr) => {
-        impl<T: StorageType> Pixel for $name<T> {
+        impl<T: Copy + Send> Pixel for $name<T> {
             type T = T;
-
-            fn at(&self, index: usize) -> Self::T {
-                self.0[index]
-            }
-
-            fn try_from(raw: &[Self::T]) -> Result<Self, array::TryFromSliceError> {
-                match <[T; $channels]>::try_from(raw) {
-                    Ok(components) => Ok($name { 0: components }),
-                    Err(e) => Err(e),
-                }
-            }
 
             fn channels() -> u8 {
                 $channels
             }
         }
 
-        impl<T: StorageType> std::ops::Index<usize> for $name<T> {
+        impl<T> std::ops::Index<usize> for $name<T> {
             type Output = T;
 
             fn index(&self, i: usize) -> &Self::Output {
@@ -29,7 +18,7 @@ macro_rules! impl_Pixel {
             }
         }
 
-        impl<T: StorageType> std::ops::IndexMut<usize> for $name<T> {
+        impl<T> std::ops::IndexMut<usize> for $name<T> {
             fn index_mut(&mut self, i: usize) -> &mut Self::Output {
                 &mut self.0[i]
             }
@@ -44,9 +33,9 @@ macro_rules! define_pixel {
         #[repr(C)]
         #[derive(Default, Debug, Copy, Clone, PartialEq, Eq)]
         #[$doc]
-        pub struct $name<T: StorageType>(pub [T; $channels]);
+        pub struct $name<T>(pub [T; $channels]);
 
-        impl<T: StorageType> $name<T> {
+        impl<T> $name<T> {
             /// Returns a new pixel
             ///
             /// # Arguments
@@ -56,12 +45,8 @@ macro_rules! define_pixel {
             /// # Example
             ///
             /// ```
-            /// use std::array;
-            /// use std::convert::{From, TryFrom};
-            /// use std::ops::{Index, IndexMut};
-            ///
             /// use ffimage::{create_pixel, define_pixel, impl_Pixel};
-            /// use ffimage::core::{Pixel, StorageType};
+            /// use ffimage::core::Pixel;
             ///
             /// // define a new pixel type
             /// create_pixel!(Rgb, 3, #[doc = "RGB pixel"]);
@@ -71,6 +56,15 @@ macro_rules! define_pixel {
             /// ```
             pub fn new(channels: [T; $channels]) -> Self {
                 $name { 0: channels }
+            }
+        }
+
+        impl<T> From<[T; $channels]> for $name<T>
+        where
+            T: Copy,
+        {
+            fn from(array: [T; $channels]) -> Self {
+                $name { 0: array }
             }
         }
     };
@@ -87,12 +81,8 @@ macro_rules! define_pixel {
 /// # Example
 ///
 /// ```
-/// use std::array;
-/// use std::convert::{From, TryFrom};
-/// use std::ops::{Index, IndexMut};
-///
 /// use ffimage::{create_pixel, define_pixel, impl_Pixel};
-/// use ffimage::core::traits::{Pixel, StorageType};
+/// use ffimage::core::traits::Pixel;
 ///
 /// create_pixel!(Rgb, 3, #[doc = "RGB pixel"]);
 /// ```

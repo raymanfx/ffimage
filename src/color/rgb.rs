@@ -1,17 +1,14 @@
-use std::array;
-use std::convert::TryFrom;
-
 use num::traits::Bounded;
 use num_traits::AsPrimitive;
 
 use crate::color::bgr::*;
 use crate::color::gray::*;
-use crate::core::traits::{Pixel, StorageType};
+use crate::core::traits::Pixel;
 use crate::{create_pixel, define_pixel, impl_Pixel};
 
 macro_rules! impl_from_pix_to_pix3 {
     ($src:ident, $dst:ident, $_0:expr, $_1:expr, $_2:expr) => {
-        impl<I: StorageType + AsPrimitive<O>, O: StorageType + 'static> From<$src<I>> for $dst<O> {
+        impl<I: AsPrimitive<O>, O: Copy + 'static> From<$src<I>> for $dst<O> {
             fn from(pix: $src<I>) -> Self {
                 $dst {
                     0: [pix[$_0].as_(), pix[$_1].as_(), pix[$_2].as_()],
@@ -23,9 +20,7 @@ macro_rules! impl_from_pix_to_pix3 {
 
 macro_rules! impl_from_pix_to_pix4 {
     ($src:ident, $dst:ident, $_0:expr, $_1:expr, $_2:expr) => {
-        impl<I: StorageType + AsPrimitive<O>, O: StorageType + Bounded + 'static> From<$src<I>>
-            for $dst<O>
-        {
+        impl<I: AsPrimitive<O>, O: Copy + Bounded + 'static> From<$src<I>> for $dst<O> {
             fn from(pix: $src<I>) -> Self {
                 $dst {
                     0: [
@@ -59,27 +54,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn at() {
-        let pix: Rgb<u8> = Rgb { 0: [255; 3] };
-
-        assert_eq!(pix.at(0), 255);
-        assert_eq!(pix.at(0), 255);
-        assert_eq!(pix.at(0), 255);
-    }
-
-    #[test]
-    fn try_from() {
-        let mem = vec![255; 3];
-        let pix: Rgb<u8> = Pixel::try_from(&mem).unwrap();
-
-        assert_eq!(pix.at(0), 255);
-        assert_eq!(pix.at(0), 255);
-        assert_eq!(pix.at(0), 255);
-    }
-
-    #[test]
     fn channels() {
         assert_eq!(Rgb::<u8>::channels(), 3);
         assert_eq!(Rgba::<u8>::channels(), 4);
+    }
+
+    #[test]
+    fn index_mut() {
+        let pix: Rgb<u8> = Rgb { 0: [1, 2, 3] };
+
+        assert_eq!(pix[0], 1);
+        assert_eq!(pix[1], 2);
+        assert_eq!(pix[2], 3);
     }
 }

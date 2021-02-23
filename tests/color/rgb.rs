@@ -3,12 +3,11 @@ extern crate ffimage;
 use ffimage::color::bgr::*;
 use ffimage::color::gray::*;
 use ffimage::color::rgb::*;
-use ffimage::core::traits::Pixel;
 
 #[test]
 fn from_gray() {
-    let src_mem = vec![111; 1];
-    let src: Gray<u8> = Pixel::try_from(&src_mem).unwrap();
+    let src_mem = [111u8; 1];
+    let src = Gray::<u8>::from(src_mem);
     let dst = Rgb::<u8>::from(src);
 
     assert_eq!(dst[0], src[0]);
@@ -18,8 +17,8 @@ fn from_gray() {
 
 #[test]
 fn from_bgr() {
-    let src_mem = vec![111; 3];
-    let src: Bgr<u8> = Pixel::try_from(&src_mem).unwrap();
+    let src_mem = [111u8; 3];
+    let src = Bgr::<u8>::from(src_mem);
     let dst = Rgb::<u8>::from(src);
 
     assert_eq!(dst[0], src[2]);
