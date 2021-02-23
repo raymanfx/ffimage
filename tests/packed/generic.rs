@@ -1,211 +1,143 @@
-macro_rules! test_GenericImageView {
-    ($id:ident) => {
-        #[test]
-        fn as_slice() {
-            let mut mem = vec![1, 2, 3];
-            let view = $id::<Rgb<u8>>::new(&mut mem, 1, 1).unwrap();
-            assert_eq!(view.as_slice()[0], 1);
-            assert_eq!(view.as_slice()[1], 2);
-            assert_eq!(view.as_slice()[2], 3);
-        }
-
-        #[test]
-        fn width() {
-            let mut mem = vec![0; 27];
-            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            assert_eq!(view.width(), 3);
-        }
-
-        #[test]
-        fn height() {
-            let mut mem = vec![0; 27];
-            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            assert_eq!(view.height(), 3);
-        }
-
-        #[test]
-        fn stride() {
-            let mut mem = vec![0; 27];
-            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            assert_eq!(view.stride(), 3 * 3);
-
-            let mut mem = vec![0; 30];
-            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            assert_eq!(view.stride(), 3 * 3 + 1);
-        }
-
-        #[test]
-        fn index() {
-            let mut mem = vec![0; 27];
-            mem[18] = 10;
-            mem[19] = 20;
-            mem[20] = 30;
-            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            let pix = view[2][0];
-            assert_eq!(pix[0], 10);
-            assert_eq!(pix[1], 20);
-            assert_eq!(pix[2], 30);
-
-            let mut mem = vec![0; 30];
-            mem[20] = 10;
-            mem[21] = 20;
-            mem[22] = 30;
-            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            let pix = view[2][0];
-            assert_eq!(pix[0], 10);
-            assert_eq!(pix[1], 20);
-            assert_eq!(pix[2], 30);
-        }
-
-        #[test]
-        fn pixel() {
-            let mut mem = vec![0; 27];
-            mem[18] = 10;
-            mem[19] = 20;
-            mem[20] = 30;
-            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            let pix = view.pixel(0, 2).unwrap();
-            assert_eq!(pix[0], 10);
-            assert_eq!(pix[1], 20);
-            assert_eq!(pix[2], 30);
-
-            let mut mem = vec![0; 30];
-            mem[20] = 10;
-            mem[21] = 20;
-            mem[22] = 30;
-            let view = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            let pix = view.pixel(0, 2).unwrap();
-            assert_eq!(pix[0], 10);
-            assert_eq!(pix[1], 20);
-            assert_eq!(pix[2], 30);
-        }
-
-        #[test]
-        fn view() {
-            // 4x4 RGB with one padding byte at the end of each row
-            let mut mem = vec![0; 52];
-            mem[16] = 10;
-            mem[17] = 20;
-            mem[18] = 30;
-            mem[32] = 11;
-            mem[33] = 21;
-            mem[34] = 31;
-            let view = $id::<Rgb<u8>>::new(&mut mem, 4, 4).unwrap();
-            let sub = view.view(1, 1, 2, 2).unwrap();
-            let pix = sub[0][0];
-            assert_eq!(pix[0], 10);
-            assert_eq!(pix[1], 20);
-            assert_eq!(pix[2], 30);
-            let pix = sub[1][1];
-            assert_eq!(pix[0], 11);
-            assert_eq!(pix[1], 21);
-            assert_eq!(pix[2], 31);
-        }
-    };
-}
-
-macro_rules! test_GenericImage {
-    ($id:ident) => {
-        #[test]
-        fn as_mut_slice() {
-            let mut mem = vec![1, 2, 3];
-            let mut view = $id::<Rgb<u8>>::new(&mut mem, 1, 1).unwrap();
-            assert_eq!(view.as_mut_slice()[0], 1);
-            assert_eq!(view.as_mut_slice()[1], 2);
-            assert_eq!(view.as_mut_slice()[2], 3);
-        }
-
-        #[test]
-        fn index_mut() {
-            let mut mem = vec![0; 27];
-            let mut buf = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            buf.set_pixel(0, 2, &Rgb::<u8>::new([10, 20, 30])).unwrap();
-            let pix = buf[2][0];
-            assert_eq!(pix[0], 10);
-            assert_eq!(pix[1], 20);
-            assert_eq!(pix[2], 30);
-
-            let mut mem = vec![0; 30];
-            let mut buf = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            buf.set_pixel(0, 2, &Rgb::<u8>::new([10, 20, 30])).unwrap();
-            let pix = buf[2][0];
-            assert_eq!(pix[0], 10);
-            assert_eq!(pix[1], 20);
-            assert_eq!(pix[2], 30);
-        }
-
-        #[test]
-        fn set_pixel() {
-            let mut mem = vec![0; 27];
-            let mut buf = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            buf.set_pixel(0, 2, &Rgb::<u8>::new([10, 20, 30])).unwrap();
-            let pix = buf.pixel(0, 2).unwrap();
-            assert_eq!(pix[0], 10);
-            assert_eq!(pix[1], 20);
-            assert_eq!(pix[2], 30);
-
-            let mut mem = vec![0; 30];
-            let mut buf = $id::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-            buf.set_pixel(0, 2, &Rgb::<u8>::new([10, 20, 30])).unwrap();
-            let pix = buf.pixel(0, 2).unwrap();
-            assert_eq!(pix[0], 10);
-            assert_eq!(pix[1], 20);
-            assert_eq!(pix[2], 30);
-        }
-    };
-}
-
-mod view {
-    use ffimage::color::*;
-    use ffimage::core::GenericImageView;
-    use ffimage::packed::generic::ImageView;
-
-    test_GenericImageView!(ImageView);
-}
-
-mod flatbuffer {
-    use ffimage::color::*;
-    use ffimage::core::{GenericImage, GenericImageView};
-    use ffimage::packed::generic::ImageViewMut;
-
-    test_GenericImageView!(ImageViewMut);
-    test_GenericImage!(ImageViewMut);
-}
-
-mod buffer {
-    use ffimage::color::*;
-    use ffimage::core::GenericImageView;
-    use ffimage::packed::generic::{ImageBuffer, ImageView};
+mod matrix {
+    use ffimage::packed::generic::Matrix;
 
     #[test]
-    fn into_vec() {
-        let mut buf = ImageBuffer::<Rgb<u8>>::new(1, 1);
-        buf[0][0][0] = 1;
-        buf[0][0][1] = 2;
-        buf[0][0][2] = 3;
-        let vec = buf.into_vec();
-        assert_eq!(vec[0], 1);
-        assert_eq!(vec[1], 2);
-        assert_eq!(vec[2], 3);
+    fn new() {
+        let matrix = Matrix::new(3, 3, 0u8);
+        assert_eq!(matrix.rows(), 3);
+        assert_eq!(matrix.cols(), 3);
+        assert_eq!(matrix.as_ref().len(), 3 * 3);
     }
 
     #[test]
-    fn from() {
+    fn resize() {
+        let mut matrix = Matrix::new(0, 0, 0u8);
+        matrix.resize(2, 4, 0);
+        assert_eq!(matrix.rows(), 2);
+        assert_eq!(matrix.cols(), 4);
+        assert_eq!(matrix.as_ref().len(), 2 * 4);
+    }
+
+    #[test]
+    fn from_buf() {
+        let mem = [0u8; 5];
+        let matrix = Matrix::from_buf(&mem, 2, 2).expect("This is a valid matrix");
+        assert_eq!(matrix.rows(), 2);
+        assert_eq!(matrix.cols(), 2);
+        assert_eq!(matrix.as_ref().len(), 2 * 2 + 1);
+    }
+
+    #[test]
+    fn row_stride() {
+        let mem = [0u16; 6];
+        let matrix = Matrix::from_buf_with_stride(&mem, 2, 3, 2).expect("This is a valid matrix");
+        assert_eq!(matrix.row_stride(), 3);
+        assert_eq!(matrix.as_ref().len(), 6);
+    }
+
+    #[test]
+    fn index() {
+        let matrix = Matrix::new(2, 2, 2u8);
+        assert_eq!(matrix[1], [2, 2]);
+    }
+
+    #[test]
+    fn index_mut() {
+        let mut matrix = Matrix::new(2, 2, 2u8);
+        matrix[1][0] = matrix[1][0] + 1;
+        assert_eq!(matrix[1], [3, 2]);
+    }
+}
+
+mod image {
+    use ffimage::color::*;
+    use ffimage::core::{GenericImage, GenericImageView};
+    use ffimage::packed::generic::Image;
+
+    #[test]
+    fn new() {
+        let image = Image::<Rgb<u8>, _>::new(3, 3, 0u8);
+        assert_eq!(image.width(), 3);
+        assert_eq!(image.height(), 3);
+        assert_eq!(image.as_ref().len(), 3 * 3 * 3);
+    }
+
+    #[test]
+    fn from_buf() {
+        let mem = [3u16; 24];
+        let image = Image::<Rgb<u16>, _>::from_buf(&mem, 2, 2).expect("This is a valid image");
+        assert_eq!(image.width(), 2);
+        assert_eq!(image.height(), 2);
+        assert_eq!(image.stride(), 2 * 3);
+        assert_eq!(image.as_ref().len(), 2 * 2 * 3 * std::mem::size_of::<u16>());
+    }
+
+    #[test]
+    fn index() {
         let mut mem = vec![0; 27];
         mem[18] = 10;
         mem[19] = 20;
         mem[20] = 30;
-        let view = ImageView::<Rgb<u8>>::new(&mut mem, 3, 3).unwrap();
-        let buffer = ImageBuffer::<Rgb<u8>>::from(&view);
-        assert_eq!(buffer.width(), view.width());
-        assert_eq!(buffer.height(), view.height());
-        assert_eq!(buffer.stride(), (buffer.width() * 3) as usize);
-        let pix = buffer.pixel(0, 2).unwrap();
+        let image = Image::<Rgb<u8>, _>::from_buf(&mem, 3, 3).expect("This is a valid image");
+        let pix = image[2][0];
+        assert_eq!(pix[0], 10);
+        assert_eq!(pix[1], 20);
+        assert_eq!(pix[2], 30);
+
+        let mut mem = vec![0; 30];
+        mem[20] = 10;
+        mem[21] = 20;
+        mem[22] = 30;
+        let image = Image::<Rgb<u8>, _>::from_buf_with_stride(&mem, 3, 3, 10)
+            .expect("This is a valid image");
+        let pix = image[2][0];
         assert_eq!(pix[0], 10);
         assert_eq!(pix[1], 20);
         assert_eq!(pix[2], 30);
     }
 
-    //test_ImageView!(GenericImageBuffer);
-    //test_ImageBuffer!(GenericImageBuffer);
+    #[test]
+    fn pixel() {
+        let mut mem = vec![0; 27];
+        mem[18] = 10;
+        mem[19] = 20;
+        mem[20] = 30;
+        let image = Image::<Rgb<u8>, _>::from_buf(&mem, 3, 3).expect("This is a valid image");
+        let pix = image.pixel(0, 2).unwrap();
+        assert_eq!(pix[0], 10);
+        assert_eq!(pix[1], 20);
+        assert_eq!(pix[2], 30);
+
+        let mut mem = vec![0; 30];
+        mem[20] = 10;
+        mem[21] = 20;
+        mem[22] = 30;
+        let image = Image::<Rgb<u8>, _>::from_buf_with_stride(&mem, 3, 3, 10)
+            .expect("This is a valid image");
+        let pix = image.pixel(0, 2).unwrap();
+        assert_eq!(pix[0], 10);
+        assert_eq!(pix[1], 20);
+        assert_eq!(pix[2], 30);
+    }
+
+    #[test]
+    fn set_pixel() {
+        let mut mem = vec![0; 27];
+        let mut image = Image::<Rgb<u8>, _>::from_buf(&mut mem, 3, 3).unwrap();
+        image
+            .set_pixel(0, 2, &Rgb::<u8>::new([10, 20, 30]))
+            .unwrap();
+        let pix = image.pixel(0, 2).unwrap();
+        assert_eq!(pix[0], 10);
+        assert_eq!(pix[1], 20);
+        assert_eq!(pix[2], 30);
+
+        image
+            .set_pixel(0, 2, &Rgb::<u8>::new([10, 20, 30]))
+            .unwrap();
+        let pix = image.pixel(0, 2).unwrap();
+        assert_eq!(pix[0], 10);
+        assert_eq!(pix[1], 20);
+        assert_eq!(pix[2], 30);
+    }
 }

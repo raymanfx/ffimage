@@ -27,12 +27,9 @@ pub trait Macropixel: Pixel {
 }
 
 /// View into an image, provides read-only pixel access
-pub trait GenericImageView<'a> {
+pub trait GenericImageView {
     /// Pixel type
     type T: Pixel;
-
-    /// Type of sub images
-    type SubImage;
 
     /// Width in pixels
     fn width(&self) -> u32;
@@ -42,13 +39,10 @@ pub trait GenericImageView<'a> {
 
     /// Returns the pixel at the specified coordinates
     fn pixel(&self, x: u32, y: u32) -> Option<Self::T>;
-
-    /// Returns a sub image view backed by the same data
-    fn view(&'a self, x: u32, y: u32, width: u32, height: u32) -> Option<Self::SubImage>;
 }
 
 /// Buffered image, provides read-write pixel access
-pub trait GenericImage<'a>: GenericImageView<'a> {
+pub trait GenericImage: GenericImageView {
     /// Sets the pixel values at the specified coordinates
     fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), ()>;
 }

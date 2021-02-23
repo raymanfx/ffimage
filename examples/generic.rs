@@ -1,6 +1,8 @@
 extern crate ffimage;
 
-use ffimage::prelude::*;
+use ffimage::color::{Gray, Rgb};
+use ffimage::core::traits::Convert;
+use ffimage::packed::generic::Image;
 
 fn main() {
     // This is our grayscale image memory.
@@ -13,12 +15,12 @@ fn main() {
     // channel requires eight bits, which makes for a total of 3 * 8 = 24 bits per pixel.
     // The length of the memory slice is validated and a None value is returned when constraints
     // are violated.
-    let view = PackedImageView::<Rgb<u8>>::new(&mem, 2, 2).unwrap();
+    let view = Image::<Rgb<u8>, _>::from_buf(&mem, 2, 2).unwrap();
 
     // Create a target buffer for the destination image.
     // Here we initialize an empty buffer with width and height both being zero. This is fine since
     // the `Convert` trait implementation will resize the target buffer for us.
-    let mut buf = PackedImageBuffer::<Gray<u8>>::new(0, 0);
+    let mut buf = Image::<Gray<u8>, _>::new(0, 0, 0u8);
 
     // Perform the actual conversion.
     // If the pixel conversion between source and target image is not defined, the compiler will

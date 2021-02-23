@@ -1,13 +1,11 @@
 use std::cell::UnsafeCell;
 use std::ops::Index;
 
-use num_traits::identities::Zero;
-
 use rayon::prelude::*;
 
 use crate::core::traits::{GenericImageView, Pixel, Convert};
 use crate::packed::traits::ConvertSlice;
-use crate::packed::generic::{ImageViewMut, ImageBuffer};
+use crate::packed::generic::{Image};
 
 // This is a private helper struct to share buffers between threads in a lock free manner where we
 // would usually need a Mutex. Only use this when you can ensure that all usage of the wrapped
@@ -32,17 +30,18 @@ impl<T> UnsafeShared<T> {
 unsafe impl<T: ?Sized + Send> Send for UnsafeShared<T> {}
 unsafe impl<T: ?Sized + Send> Sync for UnsafeShared<T> {}
 
-impl <'a, 'b, DP, I> Convert<ImageViewMut<'b, DP>> for I
+impl <DP, I> Convert<Image<DP, &mut [DP::T]>> for I
 where
     DP: Pixel,
+    DP: Send,
     DP::T: Send,
-    I: GenericImageView<'a> + Index<usize> + Sync,
+    I: GenericImageView + Index<usize> + Sync,
     <I as Index<usize>>::Output: Index<usize>,
     <I as Index<usize>>::Output: AsRef<[<<I as Index<usize>>::Output as Index<usize>>::Output]>,
     <<I as Index<usize>>::Output as Index<usize>>::Output: Pixel + ConvertSlice<DP>,
 
 {
-    fn convert(&self, output: &mut ImageViewMut<'b, DP>) {
+    fn convert(&self, output: &mut Image<DP, &mut [DP::T]>) {
         let row_count = if output.height() < self.height() {
             output.height()
         } else {
@@ -62,19 +61,20 @@ where
     }
 }
 
-impl <'a, DP, I> Convert<ImageBuffer<DP>> for I
+impl <DP, I> Convert<Image<DP, Vec<DP::T>>> for I
 where
     DP: Pixel,
-    DP::T: Copy + Send + Zero,
-    I: GenericImageView<'a> + Index<usize> + Sync,
+    DP: Send,
+    DP::T: Clone + Default + Send,
+    I: GenericImageView + Index<usize> + Sync,
     <I as Index<usize>>::Output: Index<usize>,
     <I as Index<usize>>::Output: AsRef<[<<I as Index<usize>>::Output as Index<usize>>::Output]>,
     <<I as Index<usize>>::Output as Index<usize>>::Output: Pixel + ConvertSlice<DP>,
 
 {
-    fn convert(&self, output: &mut ImageBuffer<DP>) {
+    fn convert(&self, output: &mut Image<DP, Vec<DP::T>>) {
         if output.width() != self.width() || output.height() != self.height() {
-            *output = ImageBuffer::new(self.width(), self.height());
+            *output = Image::new(self.height(), self.width(), DP::T::default());
         }
 
         let row_count = output.height();

@@ -1,22 +1,20 @@
 use std::ops::Index;
 
-use num_traits::identities::Zero;
-
 use crate::core::traits::{GenericImageView, Pixel, Convert};
 use crate::packed::traits::ConvertSlice;
-use crate::packed::generic::{ImageBuffer, ImageViewMut};
+use crate::packed::generic::{Image};
 
-impl <'a, 'b, DP, I> Convert<ImageViewMut<'b, DP>> for I
+impl <DP, I> Convert<Image<DP, &mut [DP::T]>> for I
 where
     DP: Pixel,
-    DP::T: Copy + Zero,
-    I: GenericImageView<'a> + Index<usize> + Sync,
+    DP::T: Copy,
+    I: GenericImageView + Index<usize> + Sync,
     <I as Index<usize>>::Output: Index<usize>,
     <I as Index<usize>>::Output: AsRef<[<<I as Index<usize>>::Output as Index<usize>>::Output]>,
     <<I as Index<usize>>::Output as Index<usize>>::Output: Pixel + ConvertSlice<DP>,
 
 {
-    fn convert(&self, output: &mut ImageViewMut<'b, DP>) {
+    fn convert(&self, output: &mut Image<DP, &mut [DP::T]>) {
         let row_count = if output.height() < self.height() {
             output.height()
         } else {
@@ -31,19 +29,19 @@ where
     }
 }
 
-impl <'a, DP, I> Convert<ImageBuffer<DP>> for I
+impl <DP, I> Convert<Image<DP, Vec<DP::T>>> for I
 where
     DP: Pixel,
-    DP::T: Copy + Zero,
-    I: GenericImageView<'a> + Index<usize> + Sync,
+    DP::T: Copy + Default,
+    I: GenericImageView + Index<usize> + Sync,
     <I as Index<usize>>::Output: Index<usize>,
     <I as Index<usize>>::Output: AsRef<[<<I as Index<usize>>::Output as Index<usize>>::Output]>,
     <<I as Index<usize>>::Output as Index<usize>>::Output: Pixel + ConvertSlice<DP>,
 
 {
-    fn convert(&self, output: &mut ImageBuffer<DP>) {
+    fn convert(&self, output: &mut Image<DP, Vec<DP::T>>) {
         if output.width() != self.width() || output.height() != self.height() {
-            *output = ImageBuffer::new(self.width(), self.height());
+            *output = Image::new(self.width(), self.height(), DP::T::default());
         }
 
         let row_count = output.height();

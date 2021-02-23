@@ -5,4 +5,4 @@ pub use traits::{Macropixel, Pixel};
 pub mod pixel;
 
 pub mod iter;
-pub use iter::{PixelIter, PixelIterMut};
+pub use iter::PixelIter;

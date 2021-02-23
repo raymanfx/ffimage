@@ -2,19 +2,19 @@ use criterion::{black_box, criterion_group, Criterion};
 
 use ffimage::color::*;
 use ffimage::core::Convert;
-use ffimage::packed::generic::{ImageBuffer, ImageView};
+use ffimage::packed::generic::Image;
 
 pub fn rgb_to_bgr(c: &mut Criterion) {
     let mem: Vec<u8> = vec![0; 640 * 480 * 3];
-    let view = ImageView::<Rgb<u8>>::new(&mem, 640, 480).unwrap();
-    let mut buf = ImageBuffer::<Bgr<u8>>::new(640, 480);
+    let view = Image::<Rgb<u8>, _>::from_buf(&mem, 640, 480).unwrap();
+    let mut buf = Image::<Bgr<u8>, _>::new(640, 480, 0u8);
     c.bench_function("RGB[u8] -> BGR[u8] (640x480)", |b| {
         b.iter(|| view.convert(black_box(&mut buf)))
     });
 
     let mem: Vec<u8> = vec![0; 1280 * 720 * 3];
-    let view = ImageView::<Rgb<u8>>::new(&mem, 1280, 720).unwrap();
-    let mut buf = ImageBuffer::<Bgr<u8>>::new(1280, 720);
+    let view = Image::<Rgb<u8>, _>::from_buf(&mem, 1280, 720).unwrap();
+    let mut buf = Image::<Bgr<u8>, _>::new(1280, 720, 0u8);
     c.bench_function("RGB[u8] -> BGR[u8] (1280x720)", |b| {
         b.iter(|| view.convert(black_box(&mut buf)))
     });
@@ -22,15 +22,15 @@ pub fn rgb_to_bgr(c: &mut Criterion) {
 
 pub fn rgb_to_gray(c: &mut Criterion) {
     let mem: Vec<u8> = vec![0; 640 * 480 * 3];
-    let view = ImageView::<Rgb<u8>>::new(&mem, 640, 480).unwrap();
-    let mut buf = ImageBuffer::<Gray<u8>>::new(640, 480);
+    let view = Image::<Rgb<u8>, _>::from_buf(&mem, 640, 480).unwrap();
+    let mut buf = Image::<Gray<u8>, _>::new(640, 480, 0u8);
     c.bench_function("RGB[u8] -> Gray[u8] (640x480)", |b| {
         b.iter(|| view.convert(black_box(&mut buf)))
     });
 
     let mem: Vec<u8> = vec![0; 1280 * 720 * 3];
-    let view = ImageView::<Rgb<u8>>::new(&mem, 1280, 720).unwrap();
-    let mut buf = ImageBuffer::<Gray<u8>>::new(1280, 720);
+    let view = Image::<Rgb<u8>, _>::from_buf(&mem, 1280, 720).unwrap();
+    let mut buf = Image::<Gray<u8>, _>::new(1280, 720, 0u8);
     c.bench_function("RGB[u8] -> Gray[u8] (1280x720)", |b| {
         b.iter(|| view.convert(black_box(&mut buf)))
     });

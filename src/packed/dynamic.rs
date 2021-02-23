@@ -1,9 +1,10 @@
 use std::any::TypeId;
 use std::convert::TryFrom;
 use std::mem;
+use std::slice;
 
 use crate::core::traits::Pixel;
-use crate::packed::generic::ImageView as GenericImageView;
+use crate::packed::generic::Image;
 
 #[derive(Debug, Clone, Copy)]
 /// Runtime storage type
@@ -577,21 +578,30 @@ impl<'a> From<&ImageView<'a>> for ImageBuffer {
     }
 }
 
-impl<'a, T> TryFrom<&ImageView<'a>> for GenericImageView<'a, T>
+impl<'a, T> TryFrom<&ImageView<'a>> for Image<T, &[T::T]>
 where
-    T: Pixel<T = u8>,
+    T: Pixel,
+    T::T: 'static,
 {
     type Error = ();
 
     fn try_from(input: &ImageView<'a>) -> Result<Self, Self::Error> {
-        let mem: &'a [u8];
-        match input.raw {
-            MemoryView::U8(view) => mem = view,
+        let mem = match input.raw {
+            MemoryView::U8(view) => {
+                if TypeId::of::<T::T>() == TypeId::of::<u8>() {
+                    view
+                } else {
+                    return Err(());
+                }
+            }
             _ => return Err(()),
-        }
+        };
 
-        let view = GenericImageView::<T>::new(mem, input.width, input.height);
-        match view {
+        let data = mem.as_ptr() as *const T::T;
+        let length = mem.len();
+        let slice = unsafe { slice::from_raw_parts(data, length) };
+
+        match Image::<T, &[T::T]>::from_buf(slice, input.width, input.height) {
             Some(view) => Ok(view),
             None => Err(()),
         }
