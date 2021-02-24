@@ -1,16 +1,20 @@
 #[macro_export]
 /// Implement the Pixel trait for a pixel
 macro_rules! impl_Pixel {
-    ($name:ident, $channels:expr) => {
+    ($name:ident, $channels:expr, $subpixels:expr) => {
         impl<T: Copy + Send> Pixel for $name<T> {
             type T = T;
 
             fn channels() -> u8 {
                 $channels
             }
+
+            fn subpixels() -> u8 {
+                $subpixels
+            }
         }
 
-        impl<T> std::ops::Index<usize> for $name<T> {
+        impl<T> core::ops::Index<usize> for $name<T> {
             type Output = T;
 
             fn index(&self, i: usize) -> &Self::Output {
@@ -18,7 +22,7 @@ macro_rules! impl_Pixel {
             }
         }
 
-        impl<T> std::ops::IndexMut<usize> for $name<T> {
+        impl<T> core::ops::IndexMut<usize> for $name<T> {
             fn index_mut(&mut self, i: usize) -> &mut Self::Output {
                 &mut self.0[i]
             }
@@ -89,6 +93,33 @@ macro_rules! define_pixel {
 macro_rules! create_pixel {
     ($name:ident, $channels:expr, #[$doc:meta]) => {
         define_pixel!($name, $channels, #[$doc]);
-        impl_Pixel!($name, $channels);
+        impl_Pixel!($name, $channels, 1);
+    };
+}
+
+#[macro_export]
+/// Create a new macropixel type
+///
+/// The term 'macropixel' does not seem to be defined as well as the 'pixel' term. We use it to
+/// describe storage pixels used to store image buffers. To view or render such an image, one must
+/// first convert from the macropixel representation to an image pixel (regular 'pixel') one.
+///
+/// A famous application example is YUV chroma subsampling: the YUYV format samples 4:2:2, meaning
+/// for each macropixel, there is a full chroma and two luma samples at half the bit width.
+/// YUYV buffers are converted into YUV buffers (each YUYV macropixel ends up as two full YUV
+/// pixels) for rendering.
+///
+/// # Example
+///
+/// ```
+/// use ffimage::{create_macropixel, create_pixel, define_pixel, impl_Pixel};
+/// use ffimage::core::traits::Pixel;
+///
+/// create_macropixel!(Yuyv, 2, 2, #[doc = "YUYV macropixel"]);
+/// ```
+macro_rules! create_macropixel {
+    ($name:ident, $channels:expr, $subpixels:expr, #[$doc:meta]) => {
+        define_pixel!($name, $channels, #[$doc]);
+        impl_Pixel!($name, $channels, $subpixels);
     };
 }

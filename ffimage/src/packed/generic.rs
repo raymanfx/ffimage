@@ -43,7 +43,8 @@ where
     /// * `height` - Number of rows
     /// * `value` - Initial value for all channels
     pub fn new(width: u32, height: u32, value: T::T) -> Self {
-        let raw = Matrix::new(height, width * T::channels() as u32, value);
+        let stride = width / T::subpixels() as u32 * T::channels() as u32;
+        let raw = Matrix::new(height, stride, value);
 
         Image {
             raw,
@@ -70,7 +71,8 @@ where
     /// * `width` - Width in pixels
     /// * `height` - Height in pixels
     pub fn from_buf(buf: B, width: u32, height: u32) -> Option<Self> {
-        let raw = Matrix::from_buf(buf, height, width * T::channels() as u32)?;
+        let stride = width / T::subpixels() as u32 * T::channels() as u32;
+        let raw = Matrix::from_buf(buf, height, stride)?;
 
         Some(Image {
             raw,
@@ -175,7 +177,7 @@ where
         assert!(head.is_empty(), "raw data is not aligned");
         assert_eq!(
             body.len(),
-            self.width() as usize,
+            (self.width() / T::subpixels() as u32) as usize,
             "invalid number of row items"
         );
 
@@ -193,7 +195,11 @@ where
         let row = &mut self.raw[index];
         let (head, body, _tail) = unsafe { row.align_to_mut::<T>() };
         assert!(head.is_empty(), "raw data is not aligned");
-        assert_eq!(body.len(), width as usize, "invalid number of row items");
+        assert_eq!(
+            body.len(),
+            (width / T::subpixels() as u32) as usize,
+            "invalid number of row items"
+        );
 
         body
     }

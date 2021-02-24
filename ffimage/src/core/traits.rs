@@ -1,4 +1,4 @@
-use std::{mem, ops::IndexMut};
+use std::ops::IndexMut;
 
 /// Generic pixel container
 pub trait Pixel: Sized + Copy + IndexMut<usize> {
@@ -8,10 +8,8 @@ pub trait Pixel: Sized + Copy + IndexMut<usize> {
     /// Number of channels for this pixel
     fn channels() -> u8;
 
-    /// Size of one pixel in bytes
-    fn len() -> usize {
-        Self::channels() as usize * mem::size_of::<Self::T>()
-    }
+    /// Number of image pixels for this pixel
+    fn subpixels() -> u8;
 }
 
 /// Macropixel container
