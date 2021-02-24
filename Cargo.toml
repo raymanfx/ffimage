@@ -1,2 +1,2 @@
 [workspace]
-members = ["ffimage"]
+members = ["ffimage", "ffimage-yuv"]

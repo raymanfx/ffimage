@@ -23,10 +23,14 @@ jobs:
       script:
         - cargo check --manifest-path ffimage/Cargo.toml --no-default-features
         - cargo check --manifest-path ffimage/Cargo.toml --features rayon
+        - cargo check --manifest-path ffimage-yuv/Cargo.toml --no-default-features
+        - cargo check --manifest-path ffimage-yuv/Cargo.toml --features rayon
     - name: test
       script:
         - cargo test --manifest-path ffimage/Cargo.toml --no-default-features
         - cargo test --manifest-path ffimage/Cargo.toml --features rayon
+        - cargo test --manifest-path ffimage-yuv/Cargo.toml --no-default-features
+        - cargo test --manifest-path ffimage-yuv/Cargo.toml --features rayon
     - name: fmt
       before_script:
         - rustup component add rustfmt
