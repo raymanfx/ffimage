@@ -2,7 +2,6 @@ use core::ops::{Index, IndexMut};
 
 use std::marker::PhantomData;
 
-use crate::core::iter::PixelIter;
 use crate::core::traits::{GenericImage, GenericImageView, Pixel};
 
 #[derive(Debug, Clone, Copy)]
@@ -202,43 +201,6 @@ where
         );
 
         body
-    }
-}
-
-impl<'a, T, B> Iterator for PixelIter<'a, Image<T, B>>
-where
-    T: Pixel,
-    B: AsRef<[T::T]>,
-{
-    type Item = &'a T;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.x >= self.width {
-            self.x = 0;
-            self.y += 1;
-        }
-
-        if self.y >= self.height {
-            return None;
-        }
-
-        let x = self.x;
-        self.x += 1;
-
-        Some(&self.img[self.y as usize][x as usize])
-    }
-}
-
-impl<'a, T, B> IntoIterator for &'a Image<T, B>
-where
-    T: Pixel,
-    B: AsRef<[T::T]>,
-{
-    type Item = &'a T;
-    type IntoIter = PixelIter<'a, Image<T, B>>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        PixelIter::new(self)
     }
 }
 
