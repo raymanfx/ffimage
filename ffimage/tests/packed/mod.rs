@@ -1,3 +1,3 @@
 mod convert;
-mod dynamic;
-mod generic;
+mod image;
+mod matrix;

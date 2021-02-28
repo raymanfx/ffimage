@@ -4,8 +4,8 @@ use std::ops::Index;
 use rayon::prelude::*;
 
 use crate::core::traits::{GenericImageView, Pixel, Convert};
-use crate::packed::traits::ConvertSlice;
-use crate::packed::generic::{Image};
+use crate::packed::convert::ConvertSlice;
+use crate::packed::Image;
 
 // This is a private helper struct to share buffers between threads in a lock free manner where we
 // would usually need a Mutex. Only use this when you can ensure that all usage of the wrapped

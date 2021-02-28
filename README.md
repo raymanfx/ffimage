@@ -28,7 +28,9 @@ whereas a planar RGB image would look like this:
 Below you can find a quick example usage of this crate. It introduces the basics necessary for image conversion.
 
 ```rust
-use ffimage::prelude::*;
+use ffimage::packed::{ImageView, ImageBuffer};
+use ffimage::color::{Rgb, Gray};
+use ffimage::core::Convert;
 
 fn main() {
     // This is our grayscale image memory.
@@ -41,12 +43,12 @@ fn main() {
     // channel requires eight bits, which makes for a total of 3 * 8 = 24 bits per pixel.
     // The length of the memory slice is validated and a None value is returned when constraints
     // are violated.
-    let view = PackedImageView::<Rgb<u8>>::new(&mem, 2, 2).unwrap();
+    let view = ImageView::<Rgb<u8>>::from_buf(&mem, 2, 2).unwrap();
 
     // Create a target buffer for the destination image.
     // Here we initialize an empty buffer with width and height both being zero. This is fine since
     // the `Convert` trait implementation will resize the target buffer for us.
-    let mut buf = PackedImageBuffer::<Gray<u8>>::new(0, 0);
+    let mut buf = ImageBuffer::<Gray<u8>>::new(0, 0, 0u8);
 
     // Perform the actual conversion.
     // This cannot fail since the target buffer is resizable.

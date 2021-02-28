@@ -2,7 +2,7 @@ use std::ops::Index;
 
 use crate::core::traits::{GenericImageView, Pixel, Convert};
 use crate::packed::traits::ConvertSlice;
-use crate::packed::generic::{Image};
+use crate::packed::Image;
 
 impl <DP, I> Convert<Image<DP, &mut [DP::T]>> for I
 where

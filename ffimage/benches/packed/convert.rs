@@ -2,7 +2,7 @@ use criterion::{black_box, criterion_group, Criterion};
 
 use ffimage::color::*;
 use ffimage::core::Convert;
-use ffimage::packed::generic::Image;
+use ffimage::packed::Image;
 
 pub fn rgb_to_bgr(c: &mut Criterion) {
     let mem: Vec<u8> = vec![0; 640 * 480 * 3];
