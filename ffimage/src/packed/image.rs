@@ -2,6 +2,7 @@ use core::ops::{Index, IndexMut};
 
 use std::marker::PhantomData;
 
+use crate::error::Error;
 use crate::packed::Matrix;
 use crate::traits::{GenericImage, GenericImageView, Pixel};
 
@@ -154,9 +155,9 @@ where
     T: Pixel + Copy,
     B: AsRef<[T::T]> + AsMut<[T::T]>,
 {
-    fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), ()> {
+    fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), Error> {
         if x >= self.width() || y >= self.height() {
-            return Err(());
+            return Err(Error::OutOfBounds);
         }
 
         self[y as usize][x as usize] = *pix;

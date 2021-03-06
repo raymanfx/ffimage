@@ -1,3 +1,5 @@
+use crate::error::Error;
+
 /// Generic pixel container
 pub trait Pixel {
     /// Type of the container elements
@@ -28,7 +30,7 @@ pub trait GenericImageView {
 /// Buffered image, provides read-write pixel access
 pub trait GenericImage: GenericImageView {
     /// Sets the pixel values at the specified coordinates
-    fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), ()>;
+    fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), Error>;
 }
 
 /// Convert between images

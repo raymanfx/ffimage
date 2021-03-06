@@ -53,6 +53,7 @@
 //! view.convert(&mut buf);
 //!```
 
+pub mod error;
 pub mod pixel;
 pub mod traits;
 
