@@ -53,8 +53,8 @@ where
             img: self,
             x: 0,
             y: 0,
-            width: width,
-            height: height,
+            width,
+            height,
         }
     }
 }
@@ -104,8 +104,8 @@ where
             img: self,
             x: 0,
             y: 0,
-            width: width,
-            height: height,
+            width,
+            height,
         }
     }
 }
