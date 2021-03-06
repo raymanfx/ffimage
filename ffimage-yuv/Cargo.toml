@@ -1,6 +1,7 @@
 [package]
 name = "ffimage_yuv"
-version = "0.8.0"
+description = "YUV (aka YCbCr) pixel types for ffimage"
+version = "0.9.0"
 authors = ["Christopher N. Hesse <raymanfx@gmail.com>"]
 edition = "2018"
 license = "MIT"
@@ -8,15 +9,15 @@ readme = "README.md"
 repository= "https://github.com/raymanfx/ffimage"
 
 [dependencies.ffimage]
-version = "0.8"
+version = "0.9"
 default-features = false
 path = "../ffimage"
 
 [dependencies]
-num-traits = "^0.2"
+num-traits = "0.2.14"
 
 [dev-dependencies]
-criterion = "^0.3"
+criterion = "0.3.4"
 
 [features]
 default = ["rayon"]
