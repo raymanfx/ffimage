@@ -15,7 +15,7 @@ pub struct PixelIter<T> {
 
 impl<'a, T, B> Iterator for PixelIter<&'a Image<T, B>>
 where
-    T: Pixel,
+    T: Pixel + Copy,
     B: AsRef<[T::T]>,
 {
     type Item = &'a T;
@@ -39,7 +39,7 @@ where
 
 impl<'a, T, B> IntoIterator for &'a Image<T, B>
 where
-    T: Pixel,
+    T: Pixel + Copy,
     B: AsRef<[T::T]>,
 {
     type Item = &'a T;
@@ -61,7 +61,7 @@ where
 
 impl<'a, T, B> Iterator for PixelIter<&'a mut Image<T, B>>
 where
-    T: Pixel,
+    T: Pixel + Copy,
     B: AsRef<[T::T]> + AsMut<[T::T]>,
 {
     type Item = &'a mut T;
@@ -90,7 +90,7 @@ where
 
 impl<'a, T, B> IntoIterator for &'a mut Image<T, B>
 where
-    T: Pixel,
+    T: Pixel + Copy,
     B: AsRef<[T::T]> + AsMut<[T::T]>,
 {
     type Item = &'a mut T;

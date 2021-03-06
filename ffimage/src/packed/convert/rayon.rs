@@ -32,8 +32,7 @@ unsafe impl<T: ?Sized + Send> Sync for UnsafeShared<T> {}
 
 impl <DP, I> Convert<Image<DP, &mut [DP::T]>> for I
 where
-    DP: Pixel,
-    DP: Send,
+    DP: Pixel + Copy + Send,
     DP::T: Send,
     I: GenericImageView + Index<usize> + Sync,
     <I as Index<usize>>::Output: Index<usize>,
@@ -63,8 +62,7 @@ where
 
 impl <DP, I> Convert<Image<DP, Vec<DP::T>>> for I
 where
-    DP: Pixel,
-    DP: Send,
+    DP: Pixel + Copy + Send,
     DP::T: Clone + Default + Send,
     I: GenericImageView + Index<usize> + Sync,
     <I as Index<usize>>::Output: Index<usize>,

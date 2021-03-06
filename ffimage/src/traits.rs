@@ -1,7 +1,5 @@
-use std::ops::IndexMut;
-
 /// Generic pixel container
-pub trait Pixel: Sized + Copy + IndexMut<usize> {
+pub trait Pixel {
     /// Type of the container elements
     type T;
 
@@ -10,18 +8,6 @@ pub trait Pixel: Sized + Copy + IndexMut<usize> {
 
     /// Number of image pixels for this pixel
     fn subpixels() -> u8;
-}
-
-/// Macropixel container
-pub trait Macropixel: Pixel {
-    /// Type of the image pixel
-    type Subpixel: Pixel;
-
-    /// Convert image pixels into a macropixel
-    fn from_subpixels(pixels: &[Self::Subpixel]) -> Self;
-
-    /// Convert into image pixels
-    fn to_subpixels(&self) -> [Self::Subpixel];
 }
 
 /// View into an image, provides read-only pixel access

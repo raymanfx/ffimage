@@ -6,7 +6,7 @@ use crate::packed::Image;
 
 impl <DP, I> Convert<Image<DP, &mut [DP::T]>> for I
 where
-    DP: Pixel,
+    DP: Pixel + Copy,
     DP::T: Copy,
     I: GenericImageView + Index<usize> + Sync,
     <I as Index<usize>>::Output: Index<usize>,
@@ -31,7 +31,7 @@ where
 
 impl <DP, I> Convert<Image<DP, Vec<DP::T>>> for I
 where
-    DP: Pixel,
+    DP: Pixel + Copy,
     DP::T: Copy + Default,
     I: GenericImageView + Index<usize> + Sync,
     <I as Index<usize>>::Output: Index<usize>,

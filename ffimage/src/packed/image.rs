@@ -127,7 +127,7 @@ where
 
 impl<'a, T, B> GenericImageView for Image<T, B>
 where
-    T: Pixel,
+    T: Pixel + Copy,
     B: AsRef<[T::T]>,
 {
     type T = T;
@@ -151,7 +151,7 @@ where
 
 impl<'a, T, B> GenericImage for Image<T, B>
 where
-    T: Pixel,
+    T: Pixel + Copy,
     B: AsRef<[T::T]> + AsMut<[T::T]>,
 {
     fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), ()> {
@@ -166,7 +166,7 @@ where
 
 impl<T, B> Index<usize> for Image<T, B>
 where
-    T: Pixel,
+    T: Pixel + Copy,
     B: AsRef<[T::T]>,
 {
     type Output = [T];
@@ -187,7 +187,7 @@ where
 
 impl<T, B> IndexMut<usize> for Image<T, B>
 where
-    T: Pixel,
+    T: Pixel + Copy,
     B: AsRef<[T::T]> + AsMut<[T::T]>,
 {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {

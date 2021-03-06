@@ -1,5 +1,4 @@
 use crate::packed::traits::ConvertSlice;
-use crate::traits::Pixel;
 
 // Blanket implementation for pixel row conversion.
 // If we know how to convert a single pixel into another one, we can automatically convert between
@@ -8,8 +7,8 @@ use crate::traits::Pixel;
 
 impl<SP, DP> ConvertSlice<DP> for SP
 where
-    SP: Pixel,
-    DP: Pixel + From<SP>,
+    SP: Copy,
+    DP: From<SP>,
 {
     fn convert<IT: AsRef<[Self]>, OT: AsMut<[DP]>>(input: IT, mut output: OT) {
         let pixels = input.as_ref().into_iter().zip(output.as_mut().into_iter());
