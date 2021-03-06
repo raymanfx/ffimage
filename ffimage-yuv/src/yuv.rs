@@ -2,7 +2,7 @@ use num_traits::{AsPrimitive, FromPrimitive};
 
 use ffimage::color::bgr::*;
 use ffimage::color::rgb::*;
-use ffimage::core::traits::Pixel;
+use ffimage::traits::Pixel;
 use ffimage::{create_pixel, define_pixel, impl_Pixel};
 
 macro_rules! impl_from_rgb_to_yuv {

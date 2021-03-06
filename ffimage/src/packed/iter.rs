@@ -1,7 +1,7 @@
 use std::mem;
 
-use crate::core::{GenericImageView, Pixel};
 use crate::packed::Image;
+use crate::traits::{GenericImageView, Pixel};
 
 #[derive(Debug)]
 /// An iterator type for images to iterate through pixels

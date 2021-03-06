@@ -1,6 +1,5 @@
-use ffimage::core::traits::GenericImageView;
-use ffimage::core::Convert;
 use ffimage::packed::Image;
+use ffimage::traits::{Convert, GenericImageView};
 
 use ffimage_yuv::yuv::*;
 use ffimage_yuv::yuyv::*;

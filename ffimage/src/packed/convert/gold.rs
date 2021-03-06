@@ -1,6 +1,6 @@
 use std::ops::Index;
 
-use crate::core::traits::{GenericImageView, Pixel, Convert};
+use crate::traits::{GenericImageView, Pixel, Convert};
 use crate::packed::traits::ConvertSlice;
 use crate::packed::Image;
 

@@ -1,6 +1,6 @@
 use ffimage::color::*;
-use ffimage::core::{GenericImage, GenericImageView};
 use ffimage::packed::Image;
+use ffimage::traits::{GenericImage, GenericImageView};
 
 #[test]
 fn new() {

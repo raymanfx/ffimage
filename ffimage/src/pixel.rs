@@ -41,23 +41,6 @@ macro_rules! define_pixel {
 
         impl<T> $name<T> {
             /// Returns a new pixel
-            ///
-            /// # Arguments
-            ///
-            /// * `channels` - Channel values
-            ///
-            /// # Example
-            ///
-            /// ```
-            /// use ffimage::{create_pixel, define_pixel, impl_Pixel};
-            /// use ffimage::core::Pixel;
-            ///
-            /// // define a new pixel type
-            /// create_pixel!(Rgb, 3, #[doc = "RGB pixel"]);
-            ///
-            /// // use the newly created type
-            /// let pix = Rgb::<u8>::new([0, 0, 0]);
-            /// ```
             pub fn new(channels: [T; $channels]) -> Self {
                 $name { 0: channels }
             }
@@ -86,7 +69,7 @@ macro_rules! define_pixel {
 ///
 /// ```
 /// use ffimage::{create_pixel, define_pixel, impl_Pixel};
-/// use ffimage::core::traits::Pixel;
+/// use ffimage::traits::Pixel;
 ///
 /// create_pixel!(Rgb, 3, #[doc = "RGB pixel"]);
 /// ```
@@ -113,7 +96,7 @@ macro_rules! create_pixel {
 ///
 /// ```
 /// use ffimage::{create_macropixel, create_pixel, define_pixel, impl_Pixel};
-/// use ffimage::core::traits::Pixel;
+/// use ffimage::traits::Pixel;
 ///
 /// create_macropixel!(Yuyv, 2, 2, #[doc = "YUYV macropixel"]);
 /// ```

@@ -1,8 +1,8 @@
 use criterion::{criterion_group, Criterion};
 
 use ffimage::color::*;
-use ffimage::core::traits::Convert;
 use ffimage::packed::Image;
+use ffimage::traits::Convert;
 
 use ffimage_yuv::yuv::*;
 use ffimage_yuv::yuyv::*;

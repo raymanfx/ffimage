@@ -1,5 +1,5 @@
-use ffimage::core::traits::Pixel;
 use ffimage::packed::traits::ConvertSlice;
+use ffimage::traits::Pixel;
 use ffimage::{create_macropixel, define_pixel, impl_Pixel};
 
 use crate::yuv::*;

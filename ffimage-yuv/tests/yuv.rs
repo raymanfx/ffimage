@@ -1,9 +1,8 @@
 use std::ops::RangeInclusive;
 
 use ffimage::color::Rgb;
-use ffimage::core::traits::Convert;
-use ffimage::core::GenericImageView;
 use ffimage::packed::Image;
+use ffimage::traits::{Convert, GenericImageView};
 
 use ffimage_yuv::yuv::*;
 

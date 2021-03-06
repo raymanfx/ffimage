@@ -2,8 +2,8 @@ use core::ops::{Index, IndexMut};
 
 use std::marker::PhantomData;
 
-use crate::core::traits::{GenericImage, GenericImageView, Pixel};
 use crate::packed::Matrix;
+use crate::traits::{GenericImage, GenericImageView, Pixel};
 
 #[derive(Debug, Clone, Copy)]
 /// Image view parametrized by its pixel type

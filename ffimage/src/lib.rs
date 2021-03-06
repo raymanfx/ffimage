@@ -27,7 +27,7 @@
 //! ```no_run
 //! use ffimage::packed::{ImageView, ImageBuffer};
 //! use ffimage::color::{Rgb, Gray};
-//! use ffimage::core::Convert;
+//! use ffimage::traits::Convert;
 //!
 //! fn main() {
 //!     // This is our grayscale image memory.
@@ -55,7 +55,8 @@
 //! }
 //!```
 
-pub mod core;
+pub mod pixel;
+pub mod traits;
 
 pub mod color;
 pub mod packed;

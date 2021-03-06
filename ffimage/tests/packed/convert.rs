@@ -1,6 +1,6 @@
 use ffimage::color::*;
-use ffimage::core::{Convert, GenericImageView};
 use ffimage::packed::Image;
+use ffimage::traits::{Convert, GenericImageView};
 
 #[test]
 fn convert_rgb_to_gray() {

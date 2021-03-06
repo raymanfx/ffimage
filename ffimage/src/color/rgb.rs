@@ -3,7 +3,7 @@ use num_traits::AsPrimitive;
 
 use crate::color::bgr::*;
 use crate::color::gray::*;
-use crate::core::traits::Pixel;
+use crate::traits::Pixel;
 use crate::{create_pixel, define_pixel, impl_Pixel};
 
 macro_rules! impl_from_pix_to_pix3 {

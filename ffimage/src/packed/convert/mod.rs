@@ -1,5 +1,5 @@
-use crate::core::traits::Pixel;
 use crate::packed::traits::ConvertSlice;
+use crate::traits::Pixel;
 
 // Blanket implementation for pixel row conversion.
 // If we know how to convert a single pixel into another one, we can automatically convert between

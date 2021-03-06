@@ -30,7 +30,7 @@ Below you can find a quick example usage of this crate. It introduces the basics
 ```rust
 use ffimage::packed::{ImageView, ImageBuffer};
 use ffimage::color::{Rgb, Gray};
-use ffimage::core::Convert;
+use ffimage::traits::Convert;
 
 fn main() {
     // This is our grayscale image memory.

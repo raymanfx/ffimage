@@ -3,7 +3,7 @@ use std::ops::Index;
 
 use rayon::prelude::*;
 
-use crate::core::traits::{GenericImageView, Pixel, Convert};
+use crate::traits::{GenericImageView, Pixel, Convert};
 use crate::packed::convert::ConvertSlice;
 use crate::packed::Image;
 

@@ -2,7 +2,7 @@ use num_traits::{AsPrimitive, FromPrimitive};
 
 use crate::color::bgr::*;
 use crate::color::rgb::*;
-use crate::core::traits::Pixel;
+use crate::traits::Pixel;
 use crate::{create_pixel, define_pixel, impl_Pixel};
 
 macro_rules! impl_from_rgb_to_gray {
