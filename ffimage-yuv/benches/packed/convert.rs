@@ -5,7 +5,7 @@ use ffimage::packed::Image;
 use ffimage::traits::Convert;
 
 use ffimage_yuv::yuv::*;
-use ffimage_yuv::yuyv::*;
+use ffimage_yuv::yuv422::*;
 
 pub fn rgb_to_yuv(c: &mut Criterion) {
     let mem: Vec<u8> = vec![0; 640 * 480 * 3];

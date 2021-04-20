@@ -2,7 +2,7 @@ use ffimage::packed::Image;
 use ffimage::traits::{Convert, GenericImageView};
 
 use ffimage_yuv::yuv::*;
-use ffimage_yuv::yuyv::*;
+use ffimage_yuv::yuv422::*;
 
 #[test]
 fn convert_yuy_to_yuyv() {

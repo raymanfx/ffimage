@@ -1,2 +1,2 @@
 pub mod yuv;
-pub mod yuyv;
+pub mod yuv422;
