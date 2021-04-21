@@ -1,10 +1,10 @@
 use std::ops::Index;
 
-use crate::traits::{GenericImageView, Pixel, Convert};
 use crate::packed::traits::ConvertSlice;
 use crate::packed::Image;
+use crate::traits::{Convert, GenericImageView, Pixel};
 
-impl <DP, I> Convert<Image<DP, &mut [DP::T]>> for I
+impl<DP, I> Convert<Image<DP, &mut [DP::T]>> for I
 where
     DP: Pixel + Copy,
     DP::T: Copy,
@@ -12,7 +12,6 @@ where
     <I as Index<usize>>::Output: Index<usize>,
     <I as Index<usize>>::Output: AsRef<[<<I as Index<usize>>::Output as Index<usize>>::Output]>,
     <<I as Index<usize>>::Output as Index<usize>>::Output: Pixel + ConvertSlice<DP>,
-
 {
     fn convert(&self, output: &mut Image<DP, &mut [DP::T]>) {
         let row_count = if output.height() < self.height() {
@@ -29,7 +28,7 @@ where
     }
 }
 
-impl <DP, I> Convert<Image<DP, Vec<DP::T>>> for I
+impl<DP, I> Convert<Image<DP, Vec<DP::T>>> for I
 where
     DP: Pixel + Copy,
     DP::T: Copy + Default,
@@ -37,7 +36,6 @@ where
     <I as Index<usize>>::Output: Index<usize>,
     <I as Index<usize>>::Output: AsRef<[<<I as Index<usize>>::Output as Index<usize>>::Output]>,
     <<I as Index<usize>>::Output as Index<usize>>::Output: Pixel + ConvertSlice<DP>,
-
 {
     fn convert(&self, output: &mut Image<DP, Vec<DP::T>>) {
         if output.width() != self.width() || output.height() != self.height() {

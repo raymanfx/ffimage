@@ -3,9 +3,9 @@ use std::ops::Index;
 
 use rayon::prelude::*;
 
-use crate::traits::{GenericImageView, Pixel, Convert};
 use crate::packed::convert::ConvertSlice;
 use crate::packed::Image;
+use crate::traits::{Convert, GenericImageView, Pixel};
 
 // This is a private helper struct to share buffers between threads in a lock free manner where we
 // would usually need a Mutex. Only use this when you can ensure that all usage of the wrapped
@@ -30,7 +30,7 @@ impl<T> UnsafeShared<T> {
 unsafe impl<T: ?Sized + Send> Send for UnsafeShared<T> {}
 unsafe impl<T: ?Sized + Send> Sync for UnsafeShared<T> {}
 
-impl <DP, I> Convert<Image<DP, &mut [DP::T]>> for I
+impl<DP, I> Convert<Image<DP, &mut [DP::T]>> for I
 where
     DP: Pixel + Copy + Send,
     DP::T: Send,
@@ -38,7 +38,6 @@ where
     <I as Index<usize>>::Output: Index<usize>,
     <I as Index<usize>>::Output: AsRef<[<<I as Index<usize>>::Output as Index<usize>>::Output]>,
     <<I as Index<usize>>::Output as Index<usize>>::Output: Pixel + ConvertSlice<DP>,
-
 {
     fn convert(&self, output: &mut Image<DP, &mut [DP::T]>) {
         let row_count = if output.height() < self.height() {
@@ -60,7 +59,7 @@ where
     }
 }
 
-impl <DP, I> Convert<Image<DP, Vec<DP::T>>> for I
+impl<DP, I> Convert<Image<DP, Vec<DP::T>>> for I
 where
     DP: Pixel + Copy + Send,
     DP::T: Clone + Default + Send,
@@ -68,7 +67,6 @@ where
     <I as Index<usize>>::Output: Index<usize>,
     <I as Index<usize>>::Output: AsRef<[<<I as Index<usize>>::Output as Index<usize>>::Output]>,
     <<I as Index<usize>>::Output as Index<usize>>::Output: Pixel + ConvertSlice<DP>,
-
 {
     fn convert(&self, output: &mut Image<DP, Vec<DP::T>>) {
         if output.width() != self.width() || output.height() != self.height() {
