@@ -5,35 +5,27 @@ use ffimage::packed::Image;
 use ffimage::traits::Convert;
 
 pub fn rgb_to_bgr(c: &mut Criterion) {
-    let mem: Vec<u8> = vec![0; 640 * 480 * 3];
-    let view = Image::<Rgb<u8>, _>::from_buf(&mem, 640, 480).unwrap();
-    let mut buf = Image::<Bgr<u8>, _>::new(640, 480, 0u8);
-    c.bench_function("RGB[u8] -> BGR[u8] (640x480)", |b| {
-        b.iter(|| view.convert(black_box(&mut buf)))
-    });
+    let resolutions = [(640, 480), (1280, 720)];
 
-    let mem: Vec<u8> = vec![0; 1280 * 720 * 3];
-    let view = Image::<Rgb<u8>, _>::from_buf(&mem, 1280, 720).unwrap();
-    let mut buf = Image::<Bgr<u8>, _>::new(1280, 720, 0u8);
-    c.bench_function("RGB[u8] -> BGR[u8] (1280x720)", |b| {
-        b.iter(|| view.convert(black_box(&mut buf)))
-    });
+    for res in resolutions {
+        let rgb = Image::<Rgb<u8>, Vec<u8>>::new(res.0, res.1, 0u8);
+        let mut bgr = Image::<Bgr<u8>, _>::new(res.0, res.1, 0u8);
+        c.bench_function(&format!("Rgb[u8] -> Bgr[u8] ({}x{})", res.0, res.1), |b| {
+            b.iter(|| rgb.convert(black_box(&mut bgr)))
+        });
+    }
 }
 
 pub fn rgb_to_gray(c: &mut Criterion) {
-    let mem: Vec<u8> = vec![0; 640 * 480 * 3];
-    let view = Image::<Rgb<u8>, _>::from_buf(&mem, 640, 480).unwrap();
-    let mut buf = Image::<Gray<u8>, _>::new(640, 480, 0u8);
-    c.bench_function("RGB[u8] -> Gray[u8] (640x480)", |b| {
-        b.iter(|| view.convert(black_box(&mut buf)))
-    });
+    let resolutions = [(640, 480), (1280, 720)];
 
-    let mem: Vec<u8> = vec![0; 1280 * 720 * 3];
-    let view = Image::<Rgb<u8>, _>::from_buf(&mem, 1280, 720).unwrap();
-    let mut buf = Image::<Gray<u8>, _>::new(1280, 720, 0u8);
-    c.bench_function("RGB[u8] -> Gray[u8] (1280x720)", |b| {
-        b.iter(|| view.convert(black_box(&mut buf)))
-    });
+    for res in resolutions {
+        let rgb = Image::<Rgb<u8>, Vec<u8>>::new(res.0, res.1, 0u8);
+        let mut gray = Image::<Gray<u8>, _>::new(res.0, res.1, 0u8);
+        c.bench_function(&format!("Rgb[u8] -> Gray[u8] ({}x{})", res.0, res.1), |b| {
+            b.iter(|| rgb.convert(black_box(&mut gray)))
+        });
+    }
 }
 
 criterion_group!(benches, rgb_to_bgr, rgb_to_gray);
