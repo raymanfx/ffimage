@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - master
+    - next
+  pull_request:
+    branches:
+    - master
+    - next
+
+env:
+    CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: check
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Install rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        profile: minimal
+    - name: Check
+      run: cargo check --all
+
+  test:
+    name: test
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Install rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        profile: minimal
+    - name: Test
+      run: cargo test
+
+  rustfmt:
+    name: rustfmt
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Install rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        profile: minimal
+        components: rustfmt
+    - name: Fmt
+      run: cargo fmt -- --check
+
+  clippy:
+    name: clippy
+    runs-on: ubuntu-20.04
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Install rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+        profile: minimal
+        components: clippy
+    - name: Clippy
+      continue-on-error: true
+      run: cargo clippy -- -D warnings
