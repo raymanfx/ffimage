@@ -10,7 +10,7 @@ where
     SP: Copy,
     DP: From<SP>,
 {
-    fn convert<IT: AsRef<[Self]>, OT: AsMut<[DP]>>(input: IT, mut output: OT) {
+    fn convert_slice<IT: AsRef<[Self]>, OT: AsMut<[DP]>>(input: IT, mut output: OT) {
         let pixels = input.as_ref().iter().zip(output.as_mut().iter_mut());
         for (pix_in, pix_out) in pixels {
             *pix_out = DP::from(*pix_in);

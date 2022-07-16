@@ -103,7 +103,7 @@ impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize> Conver
 where
     T: Copy,
 {
-    fn convert<IT: AsRef<[Self]>, OT: AsMut<[Yuv<T>]>>(input: IT, mut output: OT) {
+    fn convert_slice<IT: AsRef<[Self]>, OT: AsMut<[Yuv<T>]>>(input: IT, mut output: OT) {
         for (outp, inp) in output
             .as_mut()
             .chunks_exact_mut(2)
@@ -121,7 +121,10 @@ impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize>
 where
     T: Copy + Default,
 {
-    fn convert<IT: AsRef<[Self]>, OT: AsMut<[Yuv422<T, Y0, Y1, U, V>]>>(input: IT, mut output: OT) {
+    fn convert_slice<IT: AsRef<[Self]>, OT: AsMut<[Yuv422<T, Y0, Y1, U, V>]>>(
+        input: IT,
+        mut output: OT,
+    ) {
         for (outp, inp) in output
             .as_mut()
             .iter_mut()

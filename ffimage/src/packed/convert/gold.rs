@@ -23,7 +23,9 @@ where
         (0..row_count).into_iter().for_each(|i| {
             let row_in = &self[i as usize];
             let row_out = &mut output[i as usize];
-            <<Self as Index<usize>>::Output as Index<usize>>::Output::convert(row_in, row_out);
+            <<Self as Index<usize>>::Output as Index<usize>>::Output::convert_slice(
+                row_in, row_out,
+            );
         });
     }
 }
@@ -47,7 +49,9 @@ where
         (0..row_count).into_iter().for_each(|i| {
             let row_in = &self[i as usize];
             let row_out = &mut output[i as usize];
-            <<Self as Index<usize>>::Output as Index<usize>>::Output::convert(row_in, row_out);
+            <<Self as Index<usize>>::Output as Index<usize>>::Output::convert_slice(
+                row_in, row_out,
+            );
         });
     }
 }
