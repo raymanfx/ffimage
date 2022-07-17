@@ -17,6 +17,13 @@ jobs:
   check:
     name: check
     runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        include:
+        - build: default
+          features: ""
+        - build: rayon
+          features: "--features rayon"
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -24,10 +31,10 @@ jobs:
       uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-        override: true
         profile: minimal
+        override: true
     - name: Check
-      run: cargo check --all
+      run: cargo check --no-default-features ${{ matrix.features }}
 
   test:
     name: test
