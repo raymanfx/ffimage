@@ -27,7 +27,7 @@
 //! ```no_run
 //! use ffimage::packed::{ImageView, ImageBuffer};
 //! use ffimage::color::{Rgb, Gray};
-//! use ffimage::traits::Convert;
+//! use ffimage::convert::Convert;
 //!
 //! // This is our grayscale image memory.
 //! // Usually, this will be allocated by a foreign function (e.g. kernel driver) and contain
@@ -42,9 +42,9 @@
 //! let view = ImageView::<Rgb<u8>>::from_buf(&mem, 2, 2).unwrap();
 //!
 //! // Create a target buffer for the destination image.
-//! // Here we initialize an empty buffer with width and height both being zero. This is fine since
-//! // the `Convert` trait implementation will resize the target buffer for us.
-//! let mut buf = ImageBuffer::<Gray<u8>>::new(0, 0, 0u8);
+//! // The dimensions should be equal to the source image, otherwise only as many pixels as the
+//! // target buffer can hold will be converted.
+//! let mut buf = ImageBuffer::<Gray<u8>>::new(2, 2, 0u8);
 //!
 //! // Perform the actual conversion.
 //! // This cannot fail since the target buffer is resizable.
@@ -58,4 +58,5 @@ pub mod pixel;
 pub mod traits;
 
 pub mod color;
+pub mod convert;
 pub mod packed;

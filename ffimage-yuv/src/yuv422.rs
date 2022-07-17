@@ -1,4 +1,6 @@
-use ffimage::packed::traits::ConvertSlice;
+use itertools::Itertools;
+
+use ffimage::convert::MapPixels;
 use ffimage::traits::Pixel;
 
 use crate::yuv::*;
@@ -98,40 +100,46 @@ where
     }
 }
 
-impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize> ConvertSlice<Yuv<T>>
-    for Yuv422<T, Y0, Y1, U, V>
+impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize>
+    MapPixels<Yuv422<T, Y0, Y1, U, V>, Yuv<T>> for Yuv422<T, Y0, Y1, U, V>
 where
     T: Copy,
 {
-    fn convert_slice<IT: AsRef<[Self]>, OT: AsMut<[Yuv<T>]>>(input: IT, mut output: OT) {
-        for (outp, inp) in output
-            .as_mut()
-            .chunks_exact_mut(2)
-            .zip(input.as_ref().iter())
-        {
-            let yuv = <[Yuv<T>; 2]>::from(*inp);
-            outp[0] = yuv[0];
-            outp[1] = yuv[1];
-        }
+    fn map_pixels<'a, I, O>(input: I, output: O)
+    where
+        I: IntoIterator<Item = &'a Yuv422<T, Y0, Y1, U, V>>,
+        O: IntoIterator<Item = &'a mut Yuv<T>>,
+        T: 'a,
+    {
+        input
+            .into_iter()
+            .zip(output.into_iter().tuples())
+            .for_each(|(t, (u1, u2))| {
+                let yuv = <[Yuv<T>; 2]>::from(*t);
+                *u1 = yuv[0];
+                *u2 = yuv[1];
+            })
     }
 }
 
-impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize>
-    ConvertSlice<Yuv422<T, Y0, Y1, U, V>> for Yuv<T>
+impl<T: Default, const Y0: usize, const Y1: usize, const U: usize, const V: usize>
+    MapPixels<Yuv<T>, Yuv422<T, Y0, Y1, U, V>> for Yuv<T>
 where
-    T: Copy + Default,
+    T: Copy,
 {
-    fn convert_slice<IT: AsRef<[Self]>, OT: AsMut<[Yuv422<T, Y0, Y1, U, V>]>>(
-        input: IT,
-        mut output: OT,
-    ) {
-        for (outp, inp) in output
-            .as_mut()
-            .iter_mut()
-            .zip(input.as_ref().chunks_exact(2))
-        {
-            *outp = Yuv422::<T, Y0, Y1, U, V>::from([inp[0], inp[1]]);
-        }
+    fn map_pixels<'a, I, O>(input: I, output: O)
+    where
+        I: IntoIterator<Item = &'a Yuv<T>>,
+        O: IntoIterator<Item = &'a mut Yuv422<T, Y0, Y1, U, V>>,
+        T: 'a,
+    {
+        input
+            .into_iter()
+            .tuples()
+            .zip(output.into_iter())
+            .for_each(|((sp1, sp2), dp)| {
+                *dp = Yuv422::<T, Y0, Y1, U, V>::from([*sp1, *sp2]);
+            })
     }
 }
 

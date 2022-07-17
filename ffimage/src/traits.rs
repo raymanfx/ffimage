@@ -32,9 +32,3 @@ pub trait GenericImage: GenericImageView {
     /// Sets the pixel values at the specified coordinates
     fn set_pixel(&mut self, x: u32, y: u32, pix: &Self::T) -> Result<(), Error>;
 }
-
-/// Convert between images
-pub trait Convert<B> {
-    /// Converts the buffer into another, possibly with a different format
-    fn convert(&self, output: &mut B);
-}

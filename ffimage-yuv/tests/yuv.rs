@@ -1,8 +1,9 @@
 use std::ops::RangeInclusive;
 
 use ffimage::color::Rgb;
+use ffimage::convert::Convert;
 use ffimage::packed::Image;
-use ffimage::traits::{Convert, GenericImageView};
+use ffimage::traits::GenericImageView;
 
 use ffimage_yuv::yuv::*;
 
@@ -23,8 +24,8 @@ fn convert_yuv_rgb() {
     mem[4] = 222;
     mem[5] = 255;
     let view = Image::<Rgb<u8>, _>::from_buf(&mem, 2, 2).unwrap();
-    let mut yuv_buf = Image::<Yuv<u8>, _>::new(0, 0, 0u8);
-    let mut rgb_buf = Image::<Rgb<u8>, _>::new(0, 0, 0u8);
+    let mut yuv_buf = Image::<Yuv<u8>, _>::new(2, 2, 0u8);
+    let mut rgb_buf = Image::<Rgb<u8>, _>::new(2, 2, 0u8);
     view.convert(&mut yuv_buf);
     yuv_buf.convert(&mut rgb_buf);
 

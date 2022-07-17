@@ -1,8 +1,8 @@
 use criterion::{black_box, criterion_group, Criterion};
 
 use ffimage::color::*;
+use ffimage::convert::Convert;
 use ffimage::packed::Image;
-use ffimage::traits::Convert;
 
 pub fn rgb_to_bgr(c: &mut Criterion) {
     let resolutions = [(640, 480), (1280, 720)];

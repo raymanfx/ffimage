@@ -1,12 +1,13 @@
 use ffimage::color::*;
+use ffimage::convert::Convert;
 use ffimage::packed::Image;
-use ffimage::traits::{Convert, GenericImageView};
+use ffimage::traits::GenericImageView;
 
 #[test]
 fn convert_rgb_to_gray() {
     let mem: [u8; 12] = [10; 12];
     let view = Image::<Rgb<u8>, _>::from_buf(&mem, 2, 2).unwrap();
-    let mut buf = Image::<Gray<u8>, _>::new(0, 0, 0u8);
+    let mut buf = Image::<Gray<u8>, _>::new(2, 2, 0u8);
     view.convert(&mut buf);
 
     for i in 0..view.height() {
@@ -27,7 +28,7 @@ fn convert_rgb_to_gray() {
 fn convert_gray_to_rgb() {
     let mem: [u16; 4] = [0; 4];
     let view = Image::<Gray<u16>, _>::from_buf(&mem, 2, 2).unwrap();
-    let mut buf = Image::<Rgb<u16>, _>::new(0, 0, 0u16);
+    let mut buf = Image::<Rgb<u16>, _>::new(2, 2, 0u16);
     view.convert(&mut buf);
 
     for i in 0..view.height() {

@@ -1,57 +1,33 @@
-use std::ops::Index;
-
-use crate::packed::traits::ConvertSlice;
+use crate::convert::{Convert, MapPixels};
 use crate::packed::Image;
-use crate::traits::{Convert, GenericImageView, Pixel};
+use crate::traits::{GenericImageView, Pixel};
 
-impl<DP, I> Convert<Image<DP, &mut [DP::T]>> for I
+fn _convert<'a, SP, DP, T, U>(input: &Image<SP, T>, output: &mut Image<DP, U>)
 where
-    DP: Pixel + Copy,
-    DP::T: Copy,
-    I: GenericImageView + Index<usize> + Sync,
-    <I as Index<usize>>::Output: Index<usize>,
-    <I as Index<usize>>::Output: AsRef<[<<I as Index<usize>>::Output as Index<usize>>::Output]>,
-    <<I as Index<usize>>::Output as Index<usize>>::Output: Pixel + ConvertSlice<DP>,
+    SP: 'a + Pixel + Copy + MapPixels<SP, DP>,
+    DP: 'a + Pixel + Copy,
+    T: AsRef<[SP::T]>,
+    U: AsRef<[DP::T]> + AsMut<[DP::T]>,
 {
-    fn convert(&self, output: &mut Image<DP, &mut [DP::T]>) {
-        let row_count = if output.height() < self.height() {
-            output.height()
-        } else {
-            self.height()
-        };
+    let rows = if input.height() < output.height() {
+        input.height() as usize
+    } else {
+        output.height() as usize
+    };
 
-        (0..row_count).into_iter().for_each(|i| {
-            let row_in = &self[i as usize];
-            let row_out = &mut output[i as usize];
-            <<Self as Index<usize>>::Output as Index<usize>>::Output::convert_slice(
-                row_in, row_out,
-            );
-        });
-    }
+    (0..rows)
+        .into_iter()
+        .for_each(|i| SP::map_pixels(input[i].as_ref(), output[i].as_mut()))
 }
 
-impl<DP, I> Convert<Image<DP, Vec<DP::T>>> for I
+impl<'a, SP, DP, T, U> Convert<Image<DP, U>> for Image<SP, T>
 where
-    DP: Pixel + Copy,
-    DP::T: Copy + Default,
-    I: GenericImageView + Index<usize> + Sync,
-    <I as Index<usize>>::Output: Index<usize>,
-    <I as Index<usize>>::Output: AsRef<[<<I as Index<usize>>::Output as Index<usize>>::Output]>,
-    <<I as Index<usize>>::Output as Index<usize>>::Output: Pixel + ConvertSlice<DP>,
+    SP: 'a + Pixel + Copy + MapPixels<SP, DP>,
+    DP: 'a + Pixel + Copy,
+    T: AsRef<[SP::T]>,
+    U: AsRef<[DP::T]> + AsMut<[DP::T]>,
 {
-    fn convert(&self, output: &mut Image<DP, Vec<DP::T>>) {
-        if output.width() != self.width() || output.height() != self.height() {
-            *output = Image::new(self.width(), self.height(), DP::T::default());
-        }
-
-        let row_count = output.height();
-
-        (0..row_count).into_iter().for_each(|i| {
-            let row_in = &self[i as usize];
-            let row_out = &mut output[i as usize];
-            <<Self as Index<usize>>::Output as Index<usize>>::Output::convert_slice(
-                row_in, row_out,
-            );
-        });
+    fn convert(&self, output: &mut Image<DP, U>) {
+        _convert(self, output)
     }
 }

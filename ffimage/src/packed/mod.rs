@@ -1,6 +1,3 @@
-pub mod traits;
-pub use traits::ConvertSlice;
-
 pub mod matrix;
 pub use matrix::Matrix;
 
