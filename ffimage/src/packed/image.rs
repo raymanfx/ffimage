@@ -31,7 +31,7 @@ where
     }
 }
 
-impl<'a, T> Image<T, Vec<T::T>>
+impl<T> Image<T, Vec<T::T>>
 where
     T: Pixel,
     T::T: Clone,
@@ -106,7 +106,7 @@ where
     }
 }
 
-impl<'a, T, B> AsRef<[T::T]> for Image<T, B>
+impl<T, B> AsRef<[T::T]> for Image<T, B>
 where
     T: Pixel,
     B: AsRef<[T::T]>,
@@ -116,7 +116,7 @@ where
     }
 }
 
-impl<'a, T, B> AsMut<[T::T]> for Image<T, B>
+impl<T, B> AsMut<[T::T]> for Image<T, B>
 where
     T: Pixel,
     B: AsMut<[T::T]>,
@@ -126,7 +126,7 @@ where
     }
 }
 
-impl<'a, T, B> GenericImageView for Image<T, B>
+impl<T, B> GenericImageView for Image<T, B>
 where
     T: Pixel + Copy,
     B: AsRef<[T::T]>,
@@ -150,7 +150,7 @@ where
     }
 }
 
-impl<'a, T, B> GenericImage for Image<T, B>
+impl<T, B> GenericImage for Image<T, B>
 where
     T: Pixel + Copy,
     B: AsRef<[T::T]> + AsMut<[T::T]>,

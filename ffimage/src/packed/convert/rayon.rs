@@ -55,7 +55,7 @@ where
     })
 }
 
-impl<'a, SP, DP, T, U> Convert<Image<DP, U>> for Image<SP, T>
+impl<SP, DP, T, U> Convert<Image<DP, U>> for Image<SP, T>
 where
     SP: Pixel + Copy + MapPixels<SP, DP> + Sync,
     DP: Pixel + Copy + Send,
