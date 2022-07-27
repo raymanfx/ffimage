@@ -84,7 +84,7 @@ where
         // The Rust compiler does not know that when you ask a mutable iterator for the next
         // element, that you get a different reference every time and never the same reference
         // twice. Of course, we know that such an iterator won't give you the same reference twice.
-        unsafe { mem::transmute(&self.img[self.y as usize][x as usize]) }
+        unsafe { Some(mem::transmute(&mut self.img[self.y as usize][x as usize])) }
     }
 }
 
