@@ -109,3 +109,54 @@ where
         }
     }
 }
+
+#[derive(Debug)]
+/// An iterator type for images to iterate through pixel rows
+pub struct RowIter<T> {
+    pub img: T,
+    pub y: u32,
+    pub height: u32,
+}
+
+impl<'a, T, B> Iterator for RowIter<&'a Image<T, B>>
+where
+    T: Pixel + Copy,
+    B: AsRef<[T::T]>,
+{
+    type Item = &'a [T];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let row = self.y as usize;
+
+        self.y += 1;
+        if self.y > self.height {
+            return None;
+        }
+
+        Some(&self.img[row])
+    }
+}
+
+impl<'a, T, B> Iterator for RowIter<&'a mut Image<T, B>>
+where
+    T: Pixel + Copy,
+    B: AsRef<[T::T]> + AsMut<[T::T]>,
+{
+    type Item = &'a mut [T];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let row = self.y as usize;
+
+        self.y += 1;
+        if self.y > self.height {
+            return None;
+        }
+
+        // This is safe because...
+        // (from http://stackoverflow.com/questions/25730586):
+        // The Rust compiler does not know that when you ask a mutable iterator for the next
+        // element, that you get a different reference every time and never the same reference
+        // twice. Of course, we know that such an iterator won't give you the same reference twice.
+        unsafe { Some(mem::transmute(&mut self.img[row])) }
+    }
+}

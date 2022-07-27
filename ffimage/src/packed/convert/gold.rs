@@ -1,6 +1,6 @@
 use crate::convert::{Convert, MapPixels};
 use crate::packed::Image;
-use crate::traits::{GenericImageView, Pixel};
+use crate::traits::Pixel;
 
 fn _convert<SP, DP, T, U>(input: &Image<SP, T>, output: &mut Image<DP, U>)
 where
@@ -9,15 +9,10 @@ where
     T: AsRef<[SP::T]>,
     U: AsRef<[DP::T]> + AsMut<[DP::T]>,
 {
-    let rows = if input.height() < output.height() {
-        input.height() as usize
-    } else {
-        output.height() as usize
-    };
-
-    (0..rows)
-        .into_iter()
-        .for_each(|i| SP::map_pixels(input[i].as_ref(), output[i].as_mut()))
+    input
+        .rows()
+        .zip(output.rows_mut())
+        .for_each(|(in_row, out_row)| SP::map_pixels(in_row, out_row));
 }
 
 impl<SP, DP, T, U> Convert<Image<DP, U>> for Image<SP, T>

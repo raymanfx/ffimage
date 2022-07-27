@@ -3,6 +3,7 @@ use core::ops::{Index, IndexMut};
 use std::marker::PhantomData;
 
 use crate::error::Error;
+use crate::packed::iter::{PixelIter, RowIter};
 use crate::packed::Matrix;
 use crate::traits::{GenericImage, GenericImageView, Pixel};
 
@@ -28,6 +29,56 @@ where
     /// Returns the length of one pixel row in bytes
     pub fn stride(&self) -> usize {
         self.raw.row_stride()
+    }
+
+    /// Returns an iterator over the pixel rows
+    pub fn rows(&self) -> RowIter<&Self> {
+        let height = self.height;
+        RowIter {
+            img: self,
+            y: 0,
+            height,
+        }
+    }
+
+    /// Returns an iterator that allows modifying each pixel row
+    pub fn rows_mut(&mut self) -> RowIter<&mut Self> {
+        let height = self.height;
+        RowIter {
+            img: self,
+            y: 0,
+            height,
+        }
+    }
+
+    /// Returns an iterator over the pixels
+    ///
+    /// The order is: top -> down, left -> right
+    pub fn pixels(&self) -> PixelIter<&Self> {
+        let width = self.width;
+        let height = self.height;
+        PixelIter {
+            img: self,
+            x: 0,
+            y: 0,
+            width,
+            height,
+        }
+    }
+
+    /// Returns an iterator that allows modifying each pixel
+    ///
+    /// The order is: top -> down, left -> right
+    pub fn pixels_mut(&mut self) -> PixelIter<&mut Self> {
+        let width = self.width;
+        let height = self.height;
+        PixelIter {
+            img: self,
+            x: 0,
+            y: 0,
+            width,
+            height,
+        }
     }
 }
 
