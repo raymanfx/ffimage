@@ -54,7 +54,6 @@
 //!```
 
 pub mod error;
-pub mod pixel;
 pub mod traits;
 
 pub mod color;

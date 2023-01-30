@@ -72,17 +72,13 @@ fn pixel() {
 fn set_pixel() {
     let mut mem = vec![0; 27];
     let mut image = Image::<Rgb<u8>, _>::from_buf(&mut mem, 3, 3).unwrap();
-    image
-        .set_pixel(0, 2, &Rgb::<u8>::new([10, 20, 30]))
-        .unwrap();
+    image.set_pixel(0, 2, &Rgb::<u8>([10, 20, 30])).unwrap();
     let pix = image.pixel(0, 2).unwrap();
     assert_eq!(pix[0], 10);
     assert_eq!(pix[1], 20);
     assert_eq!(pix[2], 30);
 
-    image
-        .set_pixel(0, 2, &Rgb::<u8>::new([10, 20, 30]))
-        .unwrap();
+    image.set_pixel(0, 2, &Rgb::<u8>([10, 20, 30])).unwrap();
     let pix = image.pixel(0, 2).unwrap();
     assert_eq!(pix[0], 10);
     assert_eq!(pix[1], 20);

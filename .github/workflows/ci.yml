@@ -45,7 +45,7 @@ jobs:
     - name: Install rust
       uses: actions-rs/toolchain@v1
       with:
-        toolchain: stable
+        toolchain: 1.72.0
         override: true
         profile: minimal
     - name: Test

@@ -1,32 +1,67 @@
-use num_traits::{AsPrimitive, FromPrimitive};
+use core::ops::{Deref, DerefMut};
 
-use crate::color::bgr::*;
+use num::FromPrimitive;
+
 use crate::color::rgb::*;
 use crate::traits::Pixel;
-use crate::{create_pixel, define_pixel, impl_Pixel};
 
-macro_rules! impl_from_rgb_to_gray {
-    ($src:ident, $dst:ident, $r:expr, $g:expr, $b:expr) => {
-        impl<I: AsPrimitive<f32>, O: FromPrimitive> From<$src<I>> for $dst<O> {
-            fn from(pix: $src<I>) -> Self {
-                // rec601 luma
-                let y = O::from_f32(
-                    0.2126 * pix[$r].as_() + 0.7152 * pix[$g].as_() + 0.0722 * pix[$b].as_(),
-                )
-                .unwrap();
+/// Grayscale pixel
+#[repr(C)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct Gray<T>(pub [T; 1]);
 
-                $dst { 0: [y] }
-            }
-        }
-    };
+impl<T> Deref for Gray<T> {
+    type Target = [T; 1];
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
-create_pixel!(Gray, 1, #[doc = "Grayscale pixel"]);
+impl<T> DerefMut for Gray<T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
-impl_from_rgb_to_gray!(Rgb, Gray, 0, 1, 2);
-impl_from_rgb_to_gray!(Rgba, Gray, 0, 1, 2);
-impl_from_rgb_to_gray!(Bgr, Gray, 2, 1, 0);
-impl_from_rgb_to_gray!(Bgra, Gray, 2, 1, 0);
+impl<T> Pixel for Gray<T>
+where
+    T: Copy,
+{
+    type T = T;
+
+    fn channels() -> u8 {
+        1
+    }
+
+    fn subpixels() -> u8 {
+        1
+    }
+}
+
+impl<T, U, const R: usize, const G: usize, const B: usize> From<Rgb<U, R, G, B>> for Gray<T>
+where
+    T: Copy + FromPrimitive,
+    U: Copy + Into<f32>,
+{
+    fn from(rgb: Rgb<U, R, G, B>) -> Self {
+        // rec601 luma
+        let y =
+            T::from_f32(0.2126 * rgb[R].into() + 0.7152 * rgb[G].into() + 0.0722 * rgb[B].into())
+                .expect("could not convert from f32 to T");
+
+        Gray([y])
+    }
+}
+
+impl<T, const R: usize, const G: usize, const B: usize> From<Gray<T>> for Rgb<T, R, G, B>
+where
+    T: Copy,
+{
+    fn from(gray: Gray<T>) -> Self {
+        Rgb([gray[0], gray[0], gray[0]])
+    }
+}
 
 #[cfg(test)]
 mod tests {

@@ -1,14 +1,12 @@
 extern crate ffimage;
 
-use ffimage::color::bgr::*;
 use ffimage::color::gray::*;
 use ffimage::color::rgb::*;
 
 #[test]
 fn from_gray() {
-    let src_mem = [111u8; 1];
-    let src = Gray::<u8>::from(src_mem);
-    let dst = Rgb::<u8>::from(src);
+    let src = Gray([111u8]);
+    let dst: Rgb<u8> = Rgb::from(src);
 
     assert_eq!(dst[0], src[0]);
     assert_eq!(dst[1], src[0]);
@@ -17,8 +15,7 @@ fn from_gray() {
 
 #[test]
 fn from_bgr() {
-    let src_mem = [111u8; 3];
-    let src = Bgr::<u8>::from(src_mem);
+    let src = Rgb::<u8, 2, 1, 0>([111u8; 3]);
     let dst = Rgb::<u8>::from(src);
 
     assert_eq!(dst[0], src[2]);

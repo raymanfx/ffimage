@@ -1,67 +1,107 @@
+use core::{
+    cmp::Ord,
+    ops::{Deref, DerefMut},
+};
+
 use num_traits::{AsPrimitive, FromPrimitive};
 
-use ffimage::color::bgr::*;
 use ffimage::color::rgb::*;
 use ffimage::traits::Pixel;
-use ffimage::{create_pixel, define_pixel, impl_Pixel};
 
-macro_rules! impl_from_rgb_to_yuv {
-    ($src:ident, $dst:ident, $r:expr, $g:expr, $b:expr) => {
-        impl<I: AsPrimitive<i32>, O: FromPrimitive> From<$src<I>> for $dst<O> {
-            fn from(pix: $src<I>) -> Self {
-                let r = pix[$r].as_();
-                let g = pix[$g].as_();
-                let b = pix[$b].as_();
+/// YUV pixel
+#[repr(C)]
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct Yuv<T, const Y: usize = 0, const U: usize = 1, const V: usize = 2>(pub [T; 3]);
 
-                let y = ((66 * r + 129 * g + 25 * b + 128) >> 8) + 16;
-                let u = ((-38 * r - 74 * g + 112 * b + 128) >> 8) + 128;
-                let v = ((112 * r - 94 * g - 18 * b + 128) >> 8) + 128;
+impl<T, const Y: usize, const U: usize, const V: usize> Deref for Yuv<T, Y, U, V> {
+    type Target = [T; 3];
 
-                let y = O::from_i32(y).unwrap();
-                let u = O::from_i32(u).unwrap();
-                let v = O::from_i32(v).unwrap();
-                $dst { 0: [y, u, v] }
-            }
-        }
-    };
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
-macro_rules! impl_from_yuv_to_rgb {
-    ($src:ident, $dst:ident, $r:expr, $g:expr, $b:expr) => {
-        impl<I: AsPrimitive<i32>, O: Copy + FromPrimitive> From<$src<I>> for $dst<O> {
-            fn from(pix: $src<I>) -> Self {
-                let y = pix[0].as_();
-                let u = pix[1].as_();
-                let v = pix[2].as_();
-                let c = y - 16;
-                let d = u - 128;
-                let e = v - 128;
-
-                let r = num_traits::clamp((298 * c + 409 * e + 128) >> 8, 0, 255);
-                let g = num_traits::clamp((298 * c - 100 * d - 208 * e + 128) >> 8, 0, 255);
-                let b = num_traits::clamp((298 * c + 516 * d + 128) >> 8, 0, 255);
-
-                let r = O::from_i32(r).unwrap();
-                let g = O::from_i32(g).unwrap();
-                let b = O::from_i32(b).unwrap();
-
-                let mut result = $dst { 0: [r, g, b] };
-                result[$r] = r;
-                result[$g] = g;
-                result[$b] = b;
-                result
-            }
-        }
-    };
+impl<T, const Y: usize, const U: usize, const V: usize> DerefMut for Yuv<T, Y, U, V> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
 }
 
-create_pixel!(Yuv, 3, #[doc = "YUV pixel"]);
+impl<T, const Y: usize, const U: usize, const V: usize> Pixel for Yuv<T, Y, U, V>
+where
+    T: Copy,
+{
+    type T = T;
 
-impl_from_rgb_to_yuv!(Bgr, Yuv, 2, 1, 0);
-impl_from_rgb_to_yuv!(Rgb, Yuv, 0, 1, 2);
+    fn channels() -> u8 {
+        3
+    }
 
-impl_from_yuv_to_rgb!(Yuv, Bgr, 2, 1, 0);
-impl_from_yuv_to_rgb!(Yuv, Rgb, 0, 1, 2);
+    fn subpixels() -> u8 {
+        1
+    }
+}
+
+impl<
+        T,
+        const Y: usize,
+        const U: usize,
+        const V: usize,
+        const R: usize,
+        const G: usize,
+        const B: usize,
+    > From<Rgb<T, R, G, B>> for Yuv<T, Y, U, V>
+where
+    T: Copy + Default + AsPrimitive<i32> + FromPrimitive,
+{
+    fn from(rgb: Rgb<T, R, G, B>) -> Self {
+        let r = rgb[R].as_();
+        let g = rgb[G].as_();
+        let b = rgb[B].as_();
+
+        let y = ((66 * r + 129 * g + 25 * b + 128) >> 8) + 16;
+        let u = ((-38 * r - 74 * g + 112 * b + 128) >> 8) + 128;
+        let v = ((112 * r - 94 * g - 18 * b + 128) >> 8) + 128;
+
+        let mut yuv = Yuv::<T, Y, U, V>::default();
+        yuv[Y] = T::from_i32(y).unwrap();
+        yuv[U] = T::from_i32(u).unwrap();
+        yuv[V] = T::from_i32(v).unwrap();
+        yuv
+    }
+}
+
+impl<
+        T,
+        const R: usize,
+        const G: usize,
+        const B: usize,
+        const Y: usize,
+        const U: usize,
+        const V: usize,
+    > From<Yuv<T, Y, U, V>> for Rgb<T, R, G, B>
+where
+    T: Copy + Default + AsPrimitive<i32> + FromPrimitive,
+{
+    fn from(yuv: Yuv<T, Y, U, V>) -> Self {
+        let y = yuv[Y].as_();
+        let u = yuv[U].as_();
+        let v = yuv[V].as_();
+        let c = y - 16;
+        let d = u - 128;
+        let e = v - 128;
+
+        let r = ((298 * c + 409 * e + 128) >> 8).min(255).max(0);
+        let g = ((298 * c - 100 * d - 208 * e + 128) >> 8).min(255).max(0);
+        let b = ((298 * c + 516 * d + 128) >> 8).min(255).max(0);
+
+        let mut rgb = Rgb::<T, R, G, B>::default();
+        rgb[R] = T::from_i32(r).unwrap();
+        rgb[G] = T::from_i32(g).unwrap();
+        rgb[B] = T::from_i32(b).unwrap();
+        rgb
+    }
+}
 
 #[cfg(test)]
 mod tests {
