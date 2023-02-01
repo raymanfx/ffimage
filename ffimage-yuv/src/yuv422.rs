@@ -1,6 +1,6 @@
 use core::ops::{Deref, DerefMut};
 
-use ffimage::traits::Pixel;
+use ffimage::Pixel;
 
 use crate::yuv::*;
 
@@ -38,11 +38,7 @@ impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize> DerefM
 
 impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize> Pixel
     for Yuv422<T, Y0, Y1, U, V>
-where
-    T: Copy,
 {
-    type T = T;
-
     fn channels() -> u8 {
         4
     }

@@ -2,8 +2,7 @@ use core::ops::{Deref, DerefMut};
 
 use num::FromPrimitive;
 
-use crate::color::rgb::*;
-use crate::traits::Pixel;
+use crate::{color::rgb::Rgb, Pixel};
 
 /// Grayscale pixel
 #[repr(C)]
@@ -24,12 +23,7 @@ impl<T> DerefMut for Gray<T> {
     }
 }
 
-impl<T> Pixel for Gray<T>
-where
-    T: Copy,
-{
-    type T = T;
-
+impl<T> Pixel for Gray<T> {
     fn channels() -> u8 {
         1
     }

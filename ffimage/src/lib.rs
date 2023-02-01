@@ -40,6 +40,13 @@
 //!     .collect();
 //!```
 
-pub mod traits;
+/// Generic pixel attributes
+pub trait Pixel {
+    /// Number of channels for this pixel
+    fn channels() -> u8;
+
+    /// Number of image pixels for this pixel
+    fn subpixels() -> u8;
+}
 
 pub mod color;

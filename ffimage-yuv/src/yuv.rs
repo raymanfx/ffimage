@@ -6,7 +6,7 @@ use core::{
 use num_traits::{AsPrimitive, FromPrimitive};
 
 use ffimage::color::rgb::*;
-use ffimage::traits::Pixel;
+use ffimage::Pixel;
 
 /// YUV pixel
 #[repr(C)]
@@ -27,12 +27,7 @@ impl<T, const Y: usize, const U: usize, const V: usize> DerefMut for Yuv<T, Y, U
     }
 }
 
-impl<T, const Y: usize, const U: usize, const V: usize> Pixel for Yuv<T, Y, U, V>
-where
-    T: Copy,
-{
-    type T = T;
-
+impl<T, const Y: usize, const U: usize, const V: usize> Pixel for Yuv<T, Y, U, V> {
     fn channels() -> u8 {
         3
     }

@@ -2,7 +2,7 @@ use core::ops::{Deref, DerefMut};
 
 use num::FromPrimitive;
 
-use crate::traits::Pixel;
+use crate::Pixel;
 
 /// RGB pixel
 #[repr(C)]
@@ -26,12 +26,7 @@ impl<T, const R: usize, const G: usize, const B: usize> DerefMut for Rgb<T, R, G
     }
 }
 
-impl<T, const R: usize, const G: usize, const B: usize> Pixel for Rgb<T, R, G, B>
-where
-    T: Copy,
-{
-    type T = T;
-
+impl<T, const R: usize, const G: usize, const B: usize> Pixel for Rgb<T, R, G, B> {
     fn channels() -> u8 {
         3
     }
@@ -115,11 +110,7 @@ impl<T, const R: usize, const G: usize, const B: usize, const A: usize> DerefMut
 
 impl<T, const R: usize, const G: usize, const B: usize, const A: usize> Pixel
     for Rgba<T, R, G, B, A>
-where
-    T: Copy,
 {
-    type T = T;
-
     fn channels() -> u8 {
         4
     }
