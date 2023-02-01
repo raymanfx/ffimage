@@ -9,6 +9,9 @@ use crate::traits::Pixel;
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Rgb<T, const R: usize = 0, const G: usize = 1, const B: usize = 2>(pub [T; 3]);
 
+/// BGR pixel
+pub type Bgr<T> = Rgb<T, 2, 1, 0>;
+
 impl<T, const R: usize, const G: usize, const B: usize> Deref for Rgb<T, R, G, B> {
     type Target = [T; 3];
 
@@ -88,6 +91,9 @@ where
 pub struct Rgba<T, const R: usize = 0, const G: usize = 1, const B: usize = 2, const A: usize = 3>(
     pub [T; 4],
 );
+
+/// BGR pixel with alpha channel
+pub type Bgra<T> = Rgba<T, 2, 1, 0, 3>;
 
 impl<T, const R: usize, const G: usize, const B: usize, const A: usize> Deref
     for Rgba<T, R, G, B, A>

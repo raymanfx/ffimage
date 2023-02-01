@@ -1,7 +1,7 @@
 use criterion::criterion_main;
 
-mod packed;
+mod convert;
 
 criterion_main! {
-    packed::convert::benches,
+    convert::benches,
 }

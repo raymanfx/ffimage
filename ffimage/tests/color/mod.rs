@@ -1,2 +1,0 @@
-mod gray;
-mod rgb;
