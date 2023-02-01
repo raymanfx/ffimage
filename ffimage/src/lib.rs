@@ -25,37 +25,21 @@
 //! Here is a very brief example of RGB -> Grayscale conversion of existing memory:
 //!
 //! ```no_run
-//! use ffimage::packed::{ImageView, ImageBuffer};
 //! use ffimage::color::{Rgb, Gray};
-//! use ffimage::convert::Convert;
 //!
-//! // This is our grayscale image memory.
+//! // This is our RGB image memory.
 //! // Usually, this will be allocated by a foreign function (e.g. kernel driver) and contain
 //! // read-only memory.
-//! let mem: [u8; 12] = [0; 12];
+//! let rgb = vec![Rgb::<u8>([10, 10, 10]); 10];
 //!
-//! // Create a statically typed view of the image, assuming it is RGB 24 bits per pixel.
-//! // The u8 parameter denotes the internal storage type used by image pixels. In our case, each
-//! // channel requires eight bits, which makes for a total of 3 * 8 = 24 bits per pixel.
-//! // The length of the memory slice is validated and a None value is returned when constraints
-//! // are violated.
-//! let view = ImageView::<Rgb<u8>>::from_buf(&mem, 2, 2).unwrap();
-//!
-//! // Create a target buffer for the destination image.
-//! // The dimensions should be equal to the source image, otherwise only as many pixels as the
-//! // target buffer can hold will be converted.
-//! let mut buf = ImageBuffer::<Gray<u8>>::new(2, 2, 0u8);
-//!
-//! // Perform the actual conversion.
-//! // This cannot fail since the target buffer is resizable.
-//! // If the pixel conversion between source and target image is not defined, the compiler will
-//! // refuse to compile this line.
-//! view.convert(&mut buf);
+//! // Convert the pixels into Grayscale pixels by mapping each one individually.
+//! let gray: Vec<Gray<u8>> = rgb
+//!     .iter()
+//!     .copied()
+//!     .map(|rgb| Gray::<u8>::from(rgb))
+//!     .collect();
 //!```
 
-pub mod error;
 pub mod traits;
 
 pub mod color;
-pub mod convert;
-pub mod packed;

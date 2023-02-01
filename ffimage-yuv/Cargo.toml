@@ -15,14 +15,9 @@ path = "../ffimage"
 
 [dependencies]
 num-traits = "0.2.14"
-itertools = "0.10.3"
 
 [dev-dependencies]
 criterion = "0.3.4"
-
-[features]
-default = ["rayon"]
-rayon = ["ffimage/rayon"]
 
 [[bench]]
 name = "bench_main"

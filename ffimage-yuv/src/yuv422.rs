@@ -1,10 +1,5 @@
 use core::ops::{Deref, DerefMut};
 
-use itertools::Itertools;
-use num_traits::{AsPrimitive, FromPrimitive};
-
-use ffimage::color::Rgb;
-use ffimage::convert::MapPixels;
 use ffimage::traits::Pixel;
 
 use crate::yuv::*;
@@ -86,93 +81,6 @@ where
         yuv422[Y1] = pix[1][0];
         yuv422[V] = pix[1][2];
         yuv422
-    }
-}
-
-impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize>
-    MapPixels<Yuv422<T, Y0, Y1, U, V>, Yuv<T>> for Yuv422<T, Y0, Y1, U, V>
-where
-    T: Copy,
-{
-    fn map_pixels<'a, I, O>(input: I, output: O)
-    where
-        I: IntoIterator<Item = &'a Yuv422<T, Y0, Y1, U, V>>,
-        O: IntoIterator<Item = &'a mut Yuv<T>>,
-        T: 'a,
-    {
-        input
-            .into_iter()
-            .zip(output.into_iter().tuples())
-            .for_each(|(t, (u1, u2))| {
-                let yuv = <[Yuv<T>; 2]>::from(*t);
-                *u1 = yuv[0];
-                *u2 = yuv[1];
-            })
-    }
-}
-
-impl<T: Default, const Y0: usize, const Y1: usize, const U: usize, const V: usize>
-    MapPixels<Yuv<T>, Yuv422<T, Y0, Y1, U, V>> for Yuv<T>
-where
-    T: Copy,
-{
-    fn map_pixels<'a, I, O>(input: I, output: O)
-    where
-        I: IntoIterator<Item = &'a Yuv<T>>,
-        O: IntoIterator<Item = &'a mut Yuv422<T, Y0, Y1, U, V>>,
-        T: 'a,
-    {
-        input
-            .into_iter()
-            .tuples()
-            .zip(output.into_iter())
-            .for_each(|((sp1, sp2), dp)| {
-                *dp = Yuv422::<T, Y0, Y1, U, V>::from([*sp1, *sp2]);
-            })
-    }
-}
-
-impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize>
-    MapPixels<Yuv422<T, Y0, Y1, U, V>, Rgb<T>> for Yuv422<T, Y0, Y1, U, V>
-where
-    T: Copy + Default + AsPrimitive<i32> + FromPrimitive,
-{
-    fn map_pixels<'a, I, O>(input: I, output: O)
-    where
-        I: IntoIterator<Item = &'a Yuv422<T, Y0, Y1, U, V>>,
-        O: IntoIterator<Item = &'a mut Rgb<T>>,
-        T: 'a,
-    {
-        input
-            .into_iter()
-            .zip(output.into_iter().tuples())
-            .for_each(|(t, (u1, u2))| {
-                let yuv = <[Yuv<T>; 2]>::from(*t);
-                *u1 = Rgb::<T>::from(yuv[0]);
-                *u2 = Rgb::<T>::from(yuv[1]);
-            })
-    }
-}
-
-impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize>
-    MapPixels<Yuv422<T, Y0, Y1, U, V>, Rgb<T, 2, 1, 0>> for Yuv422<T, Y0, Y1, U, V>
-where
-    T: Copy + Default + AsPrimitive<i32> + FromPrimitive,
-{
-    fn map_pixels<'a, I, O>(input: I, output: O)
-    where
-        I: IntoIterator<Item = &'a Yuv422<T, Y0, Y1, U, V>>,
-        O: IntoIterator<Item = &'a mut Rgb<T, 2, 1, 0>>,
-        T: 'a,
-    {
-        input
-            .into_iter()
-            .zip(output.into_iter().tuples())
-            .for_each(|(t, (u1, u2))| {
-                let yuv = <[Yuv<T>; 2]>::from(*t);
-                *u1 = Rgb::<T, 2, 1, 0>::from(yuv[0]);
-                *u2 = Rgb::<T, 2, 1, 0>::from(yuv[1]);
-            })
     }
 }
 
