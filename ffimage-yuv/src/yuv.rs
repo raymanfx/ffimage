@@ -86,9 +86,9 @@ where
         let d = u - 128;
         let e = v - 128;
 
-        let r = ((298 * c + 409 * e + 128) >> 8).min(255).max(0);
-        let g = ((298 * c - 100 * d - 208 * e + 128) >> 8).min(255).max(0);
-        let b = ((298 * c + 516 * d + 128) >> 8).min(255).max(0);
+        let r = ((298 * c + 409 * e + 128) >> 8).clamp(0, 255);
+        let g = ((298 * c - 100 * d - 208 * e + 128) >> 8).clamp(0, 255);
+        let b = ((298 * c + 516 * d + 128) >> 8).clamp(0, 255);
 
         let mut rgb = Rgb::<T, R, G, B>::default();
         rgb[R] = T::from_i32(r).unwrap();

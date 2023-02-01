@@ -40,6 +40,8 @@
 //!     .collect();
 //!```
 
+#![no_std]
+
 /// Generic pixel attributes
 pub trait Pixel {
     /// Number of channels for this pixel

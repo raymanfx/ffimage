@@ -54,14 +54,10 @@ where
     T: Copy,
 {
     fn from(pix: Yuv422<T, Y0, Y1, U, V>) -> Self {
-        let sub1 = Yuv {
-            0: [pix[Y0], pix[U], pix[V]],
-        };
-        let sub2 = Yuv {
-            0: [pix[Y1], pix[U], pix[V]],
-        };
-
-        [sub1, sub2]
+        [
+            Yuv([pix[Y0], pix[U], pix[V]]),
+            Yuv([pix[Y1], pix[U], pix[V]]),
+        ]
     }
 }
 
