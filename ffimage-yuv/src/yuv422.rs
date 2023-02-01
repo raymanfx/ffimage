@@ -8,7 +8,6 @@ use crate::yuv::*;
 pub type Yuyv<T> = Yuv422<T, 0, 2, 1, 3>;
 pub type Uyvy<T> = Yuv422<T, 1, 3, 0, 2>;
 
-#[repr(C)]
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq)]
 pub struct Yuv422<
     T,

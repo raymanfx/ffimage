@@ -9,7 +9,6 @@ use ffimage::color::rgb::*;
 use ffimage::Pixel;
 
 /// YUV pixel
-#[repr(C)]
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Yuv<T, const Y: usize = 0, const U: usize = 1, const V: usize = 2>(pub [T; 3]);
 

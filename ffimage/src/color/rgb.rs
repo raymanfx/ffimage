@@ -5,7 +5,6 @@ use num::FromPrimitive;
 use crate::Pixel;
 
 /// RGB pixel
-#[repr(C)]
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Rgb<T, const R: usize = 0, const G: usize = 1, const B: usize = 2>(pub [T; 3]);
 
@@ -81,7 +80,6 @@ where
 }
 
 /// RGB pixel with alpha channel
-#[repr(C)]
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Rgba<T, const R: usize = 0, const G: usize = 1, const B: usize = 2, const A: usize = 3>(
     pub [T; 4],

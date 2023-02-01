@@ -5,7 +5,6 @@ use num::FromPrimitive;
 use crate::{color::rgb::Rgb, Pixel};
 
 /// Grayscale pixel
-#[repr(C)]
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Gray<T>(pub [T; 1]);
 
