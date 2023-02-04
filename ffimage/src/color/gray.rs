@@ -8,6 +8,12 @@ use crate::{color::rgb::Rgb, Pixel};
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Gray<T>(pub [T; 1]);
 
+impl<T> From<[T; 1]> for Gray<T> {
+    fn from(value: [T; 1]) -> Self {
+        Gray(value)
+    }
+}
+
 impl<T> Deref for Gray<T> {
     type Target = [T; 1];
 

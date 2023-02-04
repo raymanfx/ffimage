@@ -52,3 +52,4 @@ pub trait Pixel {
 }
 
 pub mod color;
+pub mod iter;

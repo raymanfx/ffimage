@@ -17,6 +17,14 @@ pub struct Yuv422<
     const V: usize = 3,
 >(pub [T; 4]);
 
+impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize> From<[T; 4]>
+    for Yuv422<T, Y0, Y1, U, V>
+{
+    fn from(value: [T; 4]) -> Self {
+        Yuv422(value)
+    }
+}
+
 impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize> Deref
     for Yuv422<T, Y0, Y1, U, V>
 {

@@ -12,6 +12,12 @@ use ffimage::Pixel;
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Yuv<T, const Y: usize = 0, const U: usize = 1, const V: usize = 2>(pub [T; 3]);
 
+impl<T, const Y: usize, const U: usize, const V: usize> From<[T; 3]> for Yuv<T, Y, U, V> {
+    fn from(value: [T; 3]) -> Self {
+        Yuv(value)
+    }
+}
+
 impl<T, const Y: usize, const U: usize, const V: usize> Deref for Yuv<T, Y, U, V> {
     type Target = [T; 3];
 

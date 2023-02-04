@@ -8,6 +8,12 @@ use crate::Pixel;
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Rgb<T, const R: usize = 0, const G: usize = 1, const B: usize = 2>(pub [T; 3]);
 
+impl<T, const R: usize, const G: usize, const B: usize> From<[T; 3]> for Rgb<T, R, G, B> {
+    fn from(value: [T; 3]) -> Self {
+        Rgb(value)
+    }
+}
+
 /// BGR pixel
 pub type Bgr<T> = Rgb<T, 2, 1, 0>;
 
