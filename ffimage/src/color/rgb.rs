@@ -57,7 +57,7 @@ where
     U: Copy,
 {
     fn from(rgb: Rgb<U, 0, 1, 2>) -> Self {
-        Rgb::<T, 2, 1, 0>([T::from(rgb[0]), T::from(rgb[1]), T::from(rgb[2])])
+        Rgb::<T, 2, 1, 0>([T::from(rgb[2]), T::from(rgb[1]), T::from(rgb[0])])
     }
 }
 
