@@ -8,14 +8,14 @@ use crate::Pixel;
 #[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
 pub struct Rgb<T, const R: usize = 0, const G: usize = 1, const B: usize = 2>(pub [T; 3]);
 
+/// BGR pixel
+pub type Bgr<T> = Rgb<T, 2, 1, 0>;
+
 impl<T, const R: usize, const G: usize, const B: usize> From<[T; 3]> for Rgb<T, R, G, B> {
     fn from(value: [T; 3]) -> Self {
         Rgb(value)
     }
 }
-
-/// BGR pixel
-pub type Bgr<T> = Rgb<T, 2, 1, 0>;
 
 impl<T, const R: usize, const G: usize, const B: usize> Deref for Rgb<T, R, G, B> {
     type Target = [T; 3];
@@ -32,13 +32,7 @@ impl<T, const R: usize, const G: usize, const B: usize> DerefMut for Rgb<T, R, G
 }
 
 impl<T, const R: usize, const G: usize, const B: usize> Pixel for Rgb<T, R, G, B> {
-    fn channels() -> u8 {
-        3
-    }
-
-    fn subpixels() -> u8 {
-        1
-    }
+    const CHANNELS: u8 = 3;
 }
 
 impl<T, U> From<Rgb<U, 2, 1, 0>> for Rgb<T, 0, 1, 2>
@@ -60,6 +54,15 @@ where
         Rgb::<T, 2, 1, 0>([T::from(rgb[2]), T::from(rgb[1]), T::from(rgb[0])])
     }
 }
+
+/// RGB pixel with alpha channel
+#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+pub struct Rgba<T, const R: usize = 0, const G: usize = 1, const B: usize = 2, const A: usize = 3>(
+    pub [T; 4],
+);
+
+/// BGR pixel with alpha channel
+pub type Bgra<T> = Rgba<T, 2, 1, 0, 3>;
 
 impl<
         T,
@@ -85,15 +88,6 @@ where
     }
 }
 
-/// RGB pixel with alpha channel
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-pub struct Rgba<T, const R: usize = 0, const G: usize = 1, const B: usize = 2, const A: usize = 3>(
-    pub [T; 4],
-);
-
-/// BGR pixel with alpha channel
-pub type Bgra<T> = Rgba<T, 2, 1, 0, 3>;
-
 impl<T, const R: usize, const G: usize, const B: usize, const A: usize> Deref
     for Rgba<T, R, G, B, A>
 {
@@ -115,13 +109,7 @@ impl<T, const R: usize, const G: usize, const B: usize, const A: usize> DerefMut
 impl<T, const R: usize, const G: usize, const B: usize, const A: usize> Pixel
     for Rgba<T, R, G, B, A>
 {
-    fn channels() -> u8 {
-        4
-    }
-
-    fn subpixels() -> u8 {
-        1
-    }
+    const CHANNELS: u8 = 4;
 }
 
 impl<T, U> From<Rgba<U, 2, 1, 0, 3>> for Rgba<T, 0, 1, 2, 3>
@@ -185,8 +173,8 @@ mod tests {
 
     #[test]
     fn channels() {
-        assert_eq!(Rgb::<u8>::channels(), 3);
-        assert_eq!(Rgba::<u8>::channels(), 4);
+        assert_eq!(Rgb::<u8>::CHANNELS, 3);
+        assert_eq!(Rgba::<u8>::CHANNELS, 4);
     }
 
     #[test]

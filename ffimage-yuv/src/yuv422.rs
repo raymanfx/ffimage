@@ -46,13 +46,8 @@ impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize> DerefM
 impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize> Pixel
     for Yuv422<T, Y0, Y1, U, V>
 {
-    fn channels() -> u8 {
-        4
-    }
-
-    fn subpixels() -> u8 {
-        2
-    }
+    const CHANNELS: u8 = 4;
+    const SUBPIXELS: u8 = 2;
 }
 
 impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize>
@@ -89,6 +84,6 @@ mod tests {
 
     #[test]
     fn channels() {
-        assert_eq!(Yuv422::<u8, 0, 2, 1, 3>::channels(), 4);
+        assert_eq!(Yuv422::<u8, 0, 2, 1, 3>::CHANNELS, 4);
     }
 }

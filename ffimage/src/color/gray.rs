@@ -29,13 +29,7 @@ impl<T> DerefMut for Gray<T> {
 }
 
 impl<T> Pixel for Gray<T> {
-    fn channels() -> u8 {
-        1
-    }
-
-    fn subpixels() -> u8 {
-        1
-    }
+    const CHANNELS: u8 = 1;
 }
 
 impl<T, U, const R: usize, const G: usize, const B: usize> From<Rgb<U, R, G, B>> for Gray<T>
@@ -68,7 +62,7 @@ mod tests {
 
     #[test]
     fn channels() {
-        assert_eq!(Gray::<u8>::channels(), 1);
+        assert_eq!(Gray::<u8>::CHANNELS, 1);
     }
 
     #[test]

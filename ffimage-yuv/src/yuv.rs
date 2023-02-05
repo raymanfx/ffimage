@@ -33,13 +33,7 @@ impl<T, const Y: usize, const U: usize, const V: usize> DerefMut for Yuv<T, Y, U
 }
 
 impl<T, const Y: usize, const U: usize, const V: usize> Pixel for Yuv<T, Y, U, V> {
-    fn channels() -> u8 {
-        3
-    }
-
-    fn subpixels() -> u8 {
-        1
-    }
+    const CHANNELS: u8 = 3;
 }
 
 impl<
@@ -109,6 +103,6 @@ mod tests {
 
     #[test]
     fn channels() {
-        assert_eq!(Yuv::<u8>::channels(), 3);
+        assert_eq!(Yuv::<u8>::CHANNELS, 3);
     }
 }
