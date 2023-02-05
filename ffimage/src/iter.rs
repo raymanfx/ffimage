@@ -5,7 +5,7 @@ use core::{marker::PhantomData, ops::Deref};
 /// The trait is automatically implemented for all pixel types which implement the `From<[T; C]>`
 /// trait where T: Copy and C means the number of channels (e.g. 3 for RGB).
 pub trait PixelsExt<const C: usize>: Iterator {
-    fn pixels<P>(self) -> Pixels<Self::Item, Self, P, C>
+    fn pixels<P>(self) -> Pixels<Self::Item, Self, P, P, C>
     where
         Self: Sized,
     {
@@ -15,12 +15,12 @@ pub trait PixelsExt<const C: usize>: Iterator {
 
 impl<I, const C: usize> PixelsExt<C> for I where I: Iterator {}
 
-pub struct Pixels<T, I, P, const C: usize> {
-    _marker: PhantomData<(T, P)>,
+pub struct Pixels<T, I, P, P2, const C: usize> {
+    _marker: PhantomData<(T, P, P2)>,
     iter: I,
 }
 
-impl<T, I, P, const C: usize> Pixels<T, I, P, C> {
+impl<T, I, P, P2, const C: usize> Pixels<T, I, P, P2, C> {
     pub fn new(iter: I) -> Self {
         Pixels {
             _marker: PhantomData,
@@ -29,18 +29,21 @@ impl<T, I, P, const C: usize> Pixels<T, I, P, C> {
     }
 }
 
-impl<'a, T, I, P, const C: usize> Pixels<T, I, P, C>
+impl<'a, T, I, P, P2, const C: usize> Pixels<T, I, P, P2, C>
 where
     T: Copy + 'a,
     I: Iterator<Item = T>,
     P: From<[T; C]>,
+    P2: From<P>,
 {
-    pub fn write<P2>(self, mut out: impl Iterator<Item = &'a mut T>)
+    pub fn write(self, out: impl IntoIterator<Item = &'a mut T>)
     where
-        P2: From<P> + Deref,
+        P2: Deref,
         <P2 as Deref>::Target: AsRef<[T]>,
     {
-        self.map(|p| P2::from(p)).for_each(|p2| {
+        let mut out = out.into_iter();
+
+        self.for_each(|p2| {
             p2.as_ref().iter().for_each(|t| {
                 let _out = out.next().unwrap();
                 *_out = *t;
@@ -49,20 +52,35 @@ where
     }
 }
 
-impl<T, I, P, const C: usize> Iterator for Pixels<T, I, P, C>
+impl<'a, T, I, P, P2, const C: usize> Pixels<T, I, P, P2, C>
+where
+    T: Copy + 'a,
+    I: Iterator<Item = T>,
+    P: From<[T; C]>,
+{
+    pub fn colorconvert<P3>(self) -> Pixels<T, I, P, P3, C>
+    where
+        P3: From<P2>,
+    {
+        Pixels::new(self.iter)
+    }
+}
+
+impl<T, I, P, P2, const C: usize> Iterator for Pixels<T, I, P, P2, C>
 where
     T: Copy,
     I: Iterator<Item = T>,
     P: From<[T; C]>,
+    P2: From<P>,
 {
-    type Item = P;
+    type Item = P2;
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut chunk = [self.iter.next()?; C];
         for channel in chunk.iter_mut().take(C).skip(1) {
             *channel = self.iter.next()?
         }
-        Some(P::from(chunk))
+        Some(P2::from(P::from(chunk)))
     }
 }
 
@@ -89,7 +107,8 @@ mod tests {
         buf.iter()
             .copied()
             .pixels::<Rgb<u8>>()
-            .write::<Bgr<u8>>(out.iter_mut());
+            .colorconvert::<Bgr<u8>>()
+            .write(&mut out);
         assert_eq!(out, [3, 2, 1, 6, 5, 4, 9, 8, 7]);
     }
 }
