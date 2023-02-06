@@ -4,7 +4,7 @@ use ffimage::{
     color::Rgb,
     iter::{ColorConvertExt, PixelsExt, WriteExt},
 };
-use ffimage_yuv::{yuv::Yuv, yuv422::Yuv422};
+use ffimage_yuv::{yuv::Yuv, yuv420::Yuv420p, yuv422::Yuv422};
 
 pub fn yuv_to_rgb(c: &mut Criterion) {
     let resolutions = [(640, 480), (1280, 720)];
@@ -51,4 +51,25 @@ pub fn yuv422_to_rgb(c: &mut Criterion) {
     }
 }
 
-criterion_group!(benches, yuv_to_rgb, yuv422_to_rgb);
+pub fn yuv420p_to_rgb(c: &mut Criterion) {
+    let resolutions = [(640, 480), (1280, 720)];
+
+    for res in resolutions {
+        let yuv420p = vec![10; ((res.0 * res.1) as f32 * 1.5) as usize];
+        let mut rgb = vec![10; res.0 * res.1 * 3];
+
+        c.bench_function(
+            &format!("Yuv420p[u8] -> Rgb[u8] ({}x{})", res.0, res.1),
+            |b| {
+                b.iter(|| {
+                    Yuv420p::pack(&yuv420p)
+                        .into_iter()
+                        .colorconvert::<Rgb<u8>>()
+                        .write(black_box(&mut rgb));
+                })
+            },
+        );
+    }
+}
+
+criterion_group!(benches, yuv_to_rgb, yuv422_to_rgb, yuv420p_to_rgb);
