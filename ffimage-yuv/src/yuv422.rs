@@ -1,7 +1,7 @@
 use itertools::Itertools;
 use num_traits::{AsPrimitive, FromPrimitive};
 
-use ffimage::color::{Rgb, Bgr};
+use ffimage::color::{Bgr, Rgb};
 use ffimage::convert::MapPixels;
 use ffimage::traits::Pixel;
 
