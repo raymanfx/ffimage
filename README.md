@@ -24,7 +24,7 @@ Below you can find a quick example usage of this crate. It introduces the basics
 
 ```rust
 use ffimage::color::{Gray, Rgb};
-use ffimage::iter::{ColorConvertExt, PixelsExt, WriteExt};
+use ffimage::iter::{BytesExt, ColorConvertExt, PixelsExt};
 
 fn main() {
     // This is our RGB image memory (2x2 pixels).
@@ -42,6 +42,7 @@ fn main() {
         .copied()
         .pixels::<Rgb<u8>>()
         .colorconvert::<Gray<u8>>()
+        .bytes()
         .write(&mut gray);
 }
 ```

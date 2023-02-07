@@ -2,7 +2,7 @@ use criterion::{black_box, criterion_group, Criterion};
 
 use ffimage::{
     color::Rgb,
-    iter::{ColorConvertExt, PixelsExt, WriteExt},
+    iter::{BytesExt, ColorConvertExt, PixelsExt},
 };
 use ffimage_yuv::{yuv::Yuv, yuv420::Yuv420p, yuv422::Yuv422};
 
@@ -19,6 +19,7 @@ pub fn yuv_to_rgb(c: &mut Criterion) {
                     .copied()
                     .pixels::<Yuv<u8>>()
                     .colorconvert::<Rgb<u8>>()
+                    .bytes()
                     .write(black_box(&mut rgb))
             })
         });
@@ -43,6 +44,7 @@ pub fn yuv422_to_rgb(c: &mut Criterion) {
                         .colorconvert::<[Yuv<u8>; 2]>()
                         .flatten()
                         .colorconvert::<Rgb<u8>>()
+                        .bytes()
                         .write(black_box(&mut rgb));
                 })
             },
@@ -64,6 +66,7 @@ pub fn yuv420p_to_rgb(c: &mut Criterion) {
                     Yuv420p::pack(&yuv420p)
                         .into_iter()
                         .colorconvert::<Rgb<u8>>()
+                        .bytes()
                         .write(black_box(&mut rgb));
                 })
             },

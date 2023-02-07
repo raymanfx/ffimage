@@ -2,7 +2,7 @@ use criterion::{black_box, criterion_group, Criterion};
 
 use ffimage::{
     color::{Bgr, Gray, Rgb},
-    iter::{ColorConvertExt, PixelsExt, WriteExt},
+    iter::{BytesExt, ColorConvertExt, PixelsExt},
 };
 
 pub fn rgb_to_bgr(c: &mut Criterion) {
@@ -18,6 +18,7 @@ pub fn rgb_to_bgr(c: &mut Criterion) {
                     .copied()
                     .pixels::<Rgb<u8>>()
                     .colorconvert::<Bgr<u8>>()
+                    .bytes()
                     .write(black_box(&mut bgr))
             })
         });
@@ -37,6 +38,7 @@ pub fn rgb_to_gray(c: &mut Criterion) {
                     .copied()
                     .pixels::<Rgb<u8>>()
                     .colorconvert::<Gray<u8>>()
+                    .bytes()
                     .write(black_box(&mut gray))
             })
         });

@@ -93,24 +93,62 @@ where
 /// The trait is automatically implemented for all pixel types which implement the
 /// `Deref<Target = [T; C]>` trait where T: Copy and C means the number of channels
 /// (e.g. 3 for RGB).
-pub trait WriteExt<'a, T, O, const C: usize>: Iterator {
-    fn write(self, out: O)
+pub trait BytesExt<T, const C: usize>: Iterator {
+    fn bytes(self) -> Bytes<T, Self, C>
     where
         Self: Sized,
-        Self::Item: Deref<Target = [T; C]>,
-        T: 'a + Copy,
+    {
+        Bytes::new(self)
+    }
+}
+
+impl<T, I, const C: usize> BytesExt<T, C> for I where I: Iterator {}
+
+pub struct Bytes<T, I, const C: usize> {
+    _marker: PhantomData<T>,
+    iter: I,
+}
+
+impl<T, I, const C: usize> Bytes<T, I, C> {
+    pub fn new(iter: I) -> Self {
+        Bytes {
+            _marker: PhantomData,
+            iter,
+        }
+    }
+}
+
+impl<T, I, const C: usize> Iterator for Bytes<T, I, C>
+where
+    T: Copy,
+    I: Iterator,
+    I::Item: Deref<Target = [T; C]>,
+{
+    type Item = [T; C];
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Some(*self.iter.next()?)
+    }
+}
+
+impl<'a, T, I, const C: usize> Bytes<T, I, C>
+where
+    T: 'a + Copy,
+    I: Iterator,
+    I::Item: Deref<Target = [T; C]>,
+{
+    pub fn write<O>(self, out: O)
+    where
         O: IntoIterator<Item = &'a mut T>,
     {
         let mut out = out.into_iter();
         self.for_each(|chunk| {
-            for i in 0..C {
-                *(out.next().unwrap()) = chunk[i];
-            }
+            chunk.iter().for_each(|channel| {
+                *(out.next().expect("output iterator ended prematurely")) = *channel
+            })
         });
     }
 }
-
-impl<'a, T, I, O, const C: usize> WriteExt<'a, T, O, C> for I where I: Iterator {}
 
 #[cfg(test)]
 mod tests {
@@ -129,13 +167,14 @@ mod tests {
     }
 
     #[test]
-    fn write() {
+    fn bytes() {
         let buf = [1, 2, 3, 4, 5, 6, 7, 8, 9];
         let mut out = [0; 9];
         buf.iter()
             .copied()
             .pixels::<Rgb<u8>>()
             .colorconvert::<Bgr<u8>>()
+            .bytes()
             .write(&mut out);
         assert_eq!(out, [3, 2, 1, 6, 5, 4, 9, 8, 7]);
     }
