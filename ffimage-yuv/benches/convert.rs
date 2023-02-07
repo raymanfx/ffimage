@@ -41,10 +41,9 @@ pub fn yuv422_to_rgb(c: &mut Criterion) {
                         .copied()
                         .pixels::<Yuv422<u8, 0, 2, 1, 3>>()
                         .colorconvert::<[Yuv<u8>; 2]>()
-                        .map(|yuv422| <[Yuv<u8>; 2]>::from(yuv422))
                         .flatten()
-                        .map(|yuv| Rgb::<u8>::from(yuv))
-                        .write(&mut rgb);
+                        .colorconvert::<Rgb<u8>>()
+                        .write(black_box(&mut rgb));
                 })
             },
         );
