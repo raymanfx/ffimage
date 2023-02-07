@@ -1,5 +1,7 @@
 use itertools::Itertools;
+use num_traits::{AsPrimitive, FromPrimitive};
 
+use ffimage::color::{Bgr, Rgb};
 use ffimage::convert::MapPixels;
 use ffimage::traits::Pixel;
 
@@ -139,6 +141,50 @@ where
             .zip(output.into_iter())
             .for_each(|((sp1, sp2), dp)| {
                 *dp = Yuv422::<T, Y0, Y1, U, V>::from([*sp1, *sp2]);
+            })
+    }
+}
+
+impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize>
+    MapPixels<Yuv422<T, Y0, Y1, U, V>, Rgb<T>> for Yuv422<T, Y0, Y1, U, V>
+where
+    T: Copy + Default + AsPrimitive<i32> + FromPrimitive,
+{
+    fn map_pixels<'a, I, O>(input: I, output: O)
+    where
+        I: IntoIterator<Item = &'a Yuv422<T, Y0, Y1, U, V>>,
+        O: IntoIterator<Item = &'a mut Rgb<T>>,
+        T: 'a,
+    {
+        input
+            .into_iter()
+            .zip(output.into_iter().tuples())
+            .for_each(|(t, (u1, u2))| {
+                let yuv = <[Yuv<T>; 2]>::from(*t);
+                *u1 = Rgb::<T>::from(yuv[0]);
+                *u2 = Rgb::<T>::from(yuv[1]);
+            })
+    }
+}
+
+impl<T, const Y0: usize, const Y1: usize, const U: usize, const V: usize>
+    MapPixels<Yuv422<T, Y0, Y1, U, V>, Bgr<T>> for Yuv422<T, Y0, Y1, U, V>
+where
+    T: Copy + Default + AsPrimitive<i32> + FromPrimitive,
+{
+    fn map_pixels<'a, I, O>(input: I, output: O)
+    where
+        I: IntoIterator<Item = &'a Yuv422<T, Y0, Y1, U, V>>,
+        O: IntoIterator<Item = &'a mut Bgr<T>>,
+        T: 'a,
+    {
+        input
+            .into_iter()
+            .zip(output.into_iter().tuples())
+            .for_each(|(t, (u1, u2))| {
+                let yuv = <[Yuv<T>; 2]>::from(*t);
+                *u1 = Bgr::<T>::from(yuv[0]);
+                *u2 = Bgr::<T>::from(yuv[1]);
             })
     }
 }
