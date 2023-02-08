@@ -1,4 +1,4 @@
-use ffimage::color::{Bgra, Gray, Rgb, Rgba};
+use ffimage::color::{Gray, Rgb};
 
 #[test]
 fn convert_rgb_to_gray() {
@@ -32,21 +32,5 @@ fn convert_gray_to_rgb() {
         .zip(rgb.into_iter())
         .for_each(|(gray, rgb)| {
             assert_eq!(rgb, Rgb([gray[0], gray[0], gray[0]]));
-        });
-}
-
-#[test]
-fn convert_rgb_to_bgra() {
-    let rgb = vec![Rgb::<u8>([10, 10, 10]); 10];
-    let bgra: Vec<Bgra<u8>> = rgb
-        .iter()
-        .copied()
-        .map(|rgb| Bgra::<u8>::from(rgb))
-        .collect();
-
-    rgb.into_iter()
-        .zip(bgra.into_iter())
-        .for_each(|(rgb, bgra)| {
-            assert_eq!(bgra, Rgba::<u8, 2, 1, 0, 3>([rgb[2], rgb[1], rgb[0], 255]));
         });
 }

@@ -1,7 +1,5 @@
 use core::ops::{Deref, DerefMut};
 
-use num::FromPrimitive;
-
 use crate::Pixel;
 
 /// RGB pixel
@@ -55,118 +53,6 @@ where
     }
 }
 
-/// RGB pixel with alpha channel
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
-pub struct Rgba<T, const R: usize = 0, const G: usize = 1, const B: usize = 2, const A: usize = 3>(
-    pub [T; 4],
-);
-
-/// BGR pixel with alpha channel
-pub type Bgra<T> = Rgba<T, 2, 1, 0, 3>;
-
-impl<
-        T,
-        U,
-        const R: usize,
-        const G: usize,
-        const B: usize,
-        const RGBA_R: usize,
-        const RGBA_G: usize,
-        const RGBA_B: usize,
-        const A: usize,
-    > From<Rgba<U, RGBA_R, RGBA_G, RGBA_B, A>> for Rgb<T, R, G, B>
-where
-    T: Copy + Default + From<U>,
-    U: Copy,
-{
-    fn from(rgba: Rgba<U, RGBA_R, RGBA_G, RGBA_B, A>) -> Self {
-        let mut rgb = Rgb::<T, R, G, B>::default();
-        rgb[R] = T::from(rgba[RGBA_R]);
-        rgb[G] = T::from(rgba[RGBA_G]);
-        rgb[B] = T::from(rgba[RGBA_B]);
-        rgb
-    }
-}
-
-impl<T, const R: usize, const G: usize, const B: usize, const A: usize> Deref
-    for Rgba<T, R, G, B, A>
-{
-    type Target = [T; 4];
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
-}
-
-impl<T, const R: usize, const G: usize, const B: usize, const A: usize> DerefMut
-    for Rgba<T, R, G, B, A>
-{
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
-}
-
-impl<T, const R: usize, const G: usize, const B: usize, const A: usize> Pixel
-    for Rgba<T, R, G, B, A>
-{
-    const CHANNELS: u8 = 4;
-}
-
-impl<T, U> From<Rgba<U, 2, 1, 0, 3>> for Rgba<T, 0, 1, 2, 3>
-where
-    T: Copy + Default + From<U>,
-    U: Copy,
-{
-    fn from(rgba: Rgba<U, 2, 1, 0>) -> Self {
-        Rgba::<T, 0, 1, 2, 3>([
-            T::from(rgba[2]),
-            T::from(rgba[1]),
-            T::from(rgba[0]),
-            T::from(rgba[3]),
-        ])
-    }
-}
-
-impl<T, U> From<Rgba<U, 0, 1, 2, 3>> for Rgba<T, 2, 1, 0, 3>
-where
-    T: Copy + Default + From<U>,
-    U: Copy,
-{
-    fn from(rgba: Rgba<U, 0, 1, 2>) -> Self {
-        Rgba::<T, 2, 1, 0, 3>([
-            T::from(rgba[0]),
-            T::from(rgba[1]),
-            T::from(rgba[2]),
-            T::from(rgba[3]),
-        ])
-    }
-}
-
-impl<
-        T,
-        U,
-        const RGB_R: usize,
-        const RGB_G: usize,
-        const RGB_B: usize,
-        const R: usize,
-        const G: usize,
-        const B: usize,
-        const A: usize,
-    > From<Rgb<U, RGB_R, RGB_G, RGB_B>> for Rgba<T, R, G, B, A>
-where
-    T: Copy + Default + From<U> + FromPrimitive,
-    U: Copy,
-{
-    fn from(rgb: Rgb<U, RGB_R, RGB_G, RGB_B>) -> Self {
-        let mut rgba = Rgba::<T, R, G, B, A>::default();
-        rgba[R] = T::from(rgb[RGB_R]);
-        rgba[G] = T::from(rgb[RGB_G]);
-        rgba[B] = T::from(rgb[RGB_B]);
-        rgba[A] = T::from_u8(255).unwrap();
-        rgba
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -174,7 +60,6 @@ mod tests {
     #[test]
     fn channels() {
         assert_eq!(Rgb::<u8>::CHANNELS, 3);
-        assert_eq!(Rgba::<u8>::CHANNELS, 4);
     }
 
     #[test]
