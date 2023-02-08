@@ -1,8 +1,8 @@
 //! ffimage is a crate for foreign-function image handling and conversion.
 //!
-//! It features basic image abstractions and allows converting between views (non-owning) and
-//! buffers (owning) representations. The core building block is the Pixel trait. New pixel types
-//! can easily be defined by using procedural macros.
+//! It features basic pixel abstractions and allows converting between color formats. New pixel
+//! types can easily be defined and used with the existing abstractions. By default, RGB / BGR,
+//! Grayscale as well as YUV 4:4:4, 4:2:2, 4:2:0p (planar) are supported.
 //!
 //! Additional documentation can currently also be found in the
 //! [README.md file which is most easily viewed on github](https://github.com/raymanfx/ffimage/blob/master/README.md).
@@ -11,18 +11,8 @@
 //!
 //! # Overview
 //!
-//! Images are laid out in a certain way in memory. Most of the time, they are packed, meaning one
-//! pixel closely follows the other, with each channel in sequence. For example, RGB pixels would
-//! usually be laid out like this in a packed image:
-//!
-//! R|G|B|R|G|B|..
-//!
-//! There are other formats with other memory layouts though, in particular video frames. They
-//! usually feature something called memory 'planes'. Each plane is a linear vector in memory.
-//! This is especially common for YCbCr/YUV like formats.
-//!
 //! The common user of this crate will mainly be interested in image conversion.
-//! Here is a very brief example of RGB -> Grayscale conversion of existing memory:
+//! This is a very brief example of RGB -> Grayscale conversion of existing memory:
 //!
 //! ```no_run
 //! use ffimage::color::{Rgb, Gray};
