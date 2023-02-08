@@ -1,6 +1,6 @@
 use core::ops::{Deref, DerefMut};
 
-use num::FromPrimitive;
+use num_traits::FromPrimitive;
 
 use crate::{color::rgb::Rgb, Pixel};
 
