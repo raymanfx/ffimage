@@ -1,2 +1,3 @@
 [workspace]
-members = ["ffimage", "ffimage-yuv"]
+members = ["ffimage", "ffimage-yuv", "ffimage-app"]
+resolver="2"
