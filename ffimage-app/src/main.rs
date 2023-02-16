@@ -1,5 +1,6 @@
 use std::{env, io, io::Read};
 
+use ffimage_yuv::yuv420::Yuv420p;
 use iced::{
     executor,
     widget::{column, container, image, text::Text},
@@ -11,7 +12,9 @@ use ffimage::{
     iter::{BytesExt, ColorConvertExt, PixelsExt},
 };
 
+mod parser;
 mod ppm;
+mod y4m;
 
 mod rgba;
 use rgba::Rgba;
@@ -125,25 +128,38 @@ pub struct Image {
 }
 
 async fn load_from_stdin() -> Result<Image, &'static str> {
-    if atty::isnt(atty::Stream::Stdin) {
-        return Err("stdin is no tty");
-    }
-
     // read bytes from stdin
-    let stdin = io::stdin().lock();
-    let bytes = io::BufReader::new(stdin).bytes();
-    let bytes = bytes.filter_map(|res| match res {
-        Ok(byte) => Some(byte),
-        Err(_) => None,
-    });
+    let mut stdin = io::stdin().lock();
+    let mut bytes = Vec::new();
+    stdin
+        .read_to_end(&mut bytes)
+        .or(Err("could not read bytes from stdin"))?;
 
-    let res = ppm::read(bytes);
-    match res {
-        Ok(ppm) => Ok(Image {
+    if let Some(res) = ppm::read(bytes.iter().copied()) {
+        let ppm = res?;
+
+        return Ok(Image {
             width: ppm.width,
             height: ppm.height,
             rgb: ppm.bytes,
-        }),
-        Err(e) => Err(e),
+        });
     }
+
+    if let Some(res) = y4m::read(bytes.iter().copied()) {
+        let y4m = res?;
+        let rgb: Vec<u8> = Yuv420p::pack(&y4m.bytes, y4m.width, y4m.height)
+            .into_iter()
+            .colorconvert::<Rgb<u8>>()
+            .bytes()
+            .flatten()
+            .collect();
+
+        return Ok(Image {
+            width: y4m.width,
+            height: y4m.height,
+            rgb,
+        });
+    }
+
+    Err("unknown image format")
 }

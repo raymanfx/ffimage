@@ -1,3 +1,5 @@
+use crate::parser::*;
+
 pub struct Ppm {
     pub width: u32,
     pub height: u32,
@@ -5,7 +7,7 @@ pub struct Ppm {
     pub bytes: Vec<u8>,
 }
 
-pub fn read(bytes: impl IntoIterator<Item = u8>) -> Result<Ppm, &'static str> {
+pub fn read(bytes: impl IntoIterator<Item = u8>) -> Option<Result<Ppm, &'static str>> {
     let mut bytes = bytes.into_iter();
 
     // parse format from first line
@@ -13,75 +15,59 @@ pub fn read(bytes: impl IntoIterator<Item = u8>) -> Result<Ppm, &'static str> {
     magic[0] = if let Some(byte) = bytes.next() {
         byte
     } else {
-        return Err("ppm: not enough bytes");
+        return None;
     };
     magic[1] = if let Some(byte) = bytes.next() {
         byte
     } else {
-        return Err("ppm: not enough bytes");
+        return None;
     };
 
     // is this a P6 PPM?
     if magic != *b"P6" {
-        return Err("ppm: cannot handle magic");
+        return None;
     }
 
-    fn real_bytes(iter: &mut impl Iterator<Item = u8>, limit: usize) -> Vec<u8> {
-        let mut bytes = Vec::new();
-        for byte in iter {
-            if bytes.len() == limit {
-                break;
-            }
-
-            if byte == b' ' || byte == b'\n' {
-                if !bytes.is_empty() {
-                    break;
-                }
-            } else {
-                bytes.push(byte);
-            }
-        }
-        bytes
+    match bytes.next()? {
+        b' ' | b'\n' => {}
+        _ => return Some(Err("ppm: expected whitespace")),
     }
 
     // parse width
-    let width_bytes = real_bytes(&mut bytes, 10);
-    let width = std::str::from_utf8(&width_bytes)
-        .expect("bytes should contain ASCII data")
-        .parse::<usize>()
-        .expect("value should be integer");
+    let width = match parse_u32(&mut bytes)?.0 {
+        Ok(val) => val,
+        Err(_e) => return Some(Err("ppm: failed to parse width")),
+    };
 
     // parse height
-    let height_bytes = real_bytes(&mut bytes, 10);
-    let height = std::str::from_utf8(&height_bytes)
-        .expect("bytes should contain ASCII data")
-        .parse::<usize>()
-        .expect("value should be integer");
+    let height = match parse_u32(&mut bytes)?.0 {
+        Ok(val) => val,
+        Err(_e) => return Some(Err("ppm: failed to parse height")),
+    };
 
     // parse range
-    let range_bytes = real_bytes(&mut bytes, 10);
-    let range = std::str::from_utf8(&range_bytes)
-        .expect("bytes should contain ASCII data")
-        .parse::<usize>()
-        .expect("value should be integer");
+    let range = match parse_u32(&mut bytes)?.0 {
+        Ok(val) => val,
+        Err(_e) => return Some(Err("ppm: failed to parse range")),
+    };
 
     if range > 255 {
-        return Err("ppm: cannot handle range: {range}");
+        return Some(Err("ppm: cannot handle range: {range}"));
     }
 
     // take only as many bytes as we expect there to be in the image
-    let ppm_len = width * height * 3;
+    let ppm_len = (width * height * 3) as usize;
     let bytes: Vec<u8> = bytes.take(ppm_len).collect();
 
     // verify buffer length
-    if bytes.len() != width * height * 3 {
-        return Err("ppm: invalid length");
+    if bytes.len() != ppm_len {
+        return Some(Err("ppm: invalid length"));
     }
 
-    Ok(Ppm {
+    Some(Ok(Ppm {
         width: width as u32,
         height: height as u32,
         range: range as u32,
         bytes,
-    })
+    }))
 }
