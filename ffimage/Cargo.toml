@@ -9,7 +9,7 @@ readme = "README.md"
 repository= "https://github.com/raymanfx/ffimage"
 
 [dependencies]
-num-traits = "0.2.15"
+num-traits = { version = "0.2.15", default-features = false }
 
 [dev-dependencies]
 criterion = "0.4.0"

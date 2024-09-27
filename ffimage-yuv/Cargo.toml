@@ -14,7 +14,7 @@ default-features = false
 path = "../ffimage"
 
 [dependencies]
-num-traits = "0.2.15"
+num-traits = { version = "0.2.15", default-features = false }
 
 [dev-dependencies]
 criterion = "0.4.0"
